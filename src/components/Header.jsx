@@ -38,16 +38,12 @@ export default function Header() {
       <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
         
         {/* Logo (Left) */}
-        <Link to="/" className="flex items-center gap-3">
-          <img 
-            src="https://images.squarespace-cdn.com/content/v1/67c894550ca45b50d4350eb4/e11fb7cd-e691-4181-a329-40aea8c93872/Luitjens%2BExteriors%2BLogo.jpg?format=1500w" 
-            alt="Luitjens Exteriors" 
+        <Link to="/" className="flex items-center">
+          <img
+            src="https://images.squarespace-cdn.com/content/v1/67c894550ca45b50d4350eb4/e11fb7cd-e691-4181-a329-40aea8c93872/Luitjens%2BExteriors%2BLogo.jpg?format=1500w"
+            alt="Luitjens Exteriors"
             className="h-10 md:h-14 w-auto object-contain rounded-sm"
           />
-          <div className="flex flex-col items-start leading-none">
-            <span className="text-xl md:text-2xl font-extrabold tracking-tight text-primary uppercase">LUITJENS</span>
-            <span className="text-[10px] md:text-xs tracking-[0.2em] font-bold text-primary uppercase mt-1">Exteriors</span>
-          </div>
         </Link>
         
         {/* Desktop Nav (Right) */}
