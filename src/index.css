@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #9E8254; /* Luitjens Gold */
+  --color-primary-dark: #8B7249; /* Hover Gold */
+  --color-secondary: #000000; 
+  --color-dark: #121A21; /* Dark Navy / Charcoal */
+  --color-darker: #1A242E; /* Dark Grey Accent Text */
+  --font-sans: "Inter", "Outfit", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply antialiased text-gray-100 bg-dark;
+  }
+}
