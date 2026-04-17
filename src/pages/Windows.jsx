@@ -415,27 +415,27 @@ export default function Windows() {
 
               <div className="grid gap-5 md:grid-cols-2">
                 {windowStyles.map(style => (
-                  <div key={style.id} className="rounded-2xl border border-gray-800 bg-dark/70 p-5 transition-all hover:border-primary/40">
+                  <div key={style.id} className="min-w-0 rounded-2xl border border-gray-800 bg-dark/70 p-5 transition-all hover:border-primary/40">
                     <div className="mb-4 flex items-start justify-between gap-4">
-                      <div>
+                      <div className="min-w-0">
                         <h3 className="text-xl font-bold text-white">{style.name}</h3>
                         <p className="mt-1 text-sm leading-relaxed text-gray-400">{style.tagline}</p>
                       </div>
-                      <div className="flex h-12 min-w-12 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
                         <Home className="h-5 w-5" />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-[44px_1fr_44px] gap-2">
-                      <button type="button" className="rounded-xl border border-gray-700 bg-darker text-xl font-bold text-white transition hover:border-primary hover:text-primary" onClick={() => setQuantity(style.id, quantities[style.id] - 1)}>-</button>
+                    <div className="flex items-center gap-3">
+                      <button type="button" className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-gray-700 bg-darker text-xl font-bold text-white transition hover:border-primary hover:text-primary" onClick={() => setQuantity(style.id, quantities[style.id] - 1)}>-</button>
                       <input
                         type="number"
                         min="0"
                         value={quantities[style.id]}
                         onChange={event => setQuantity(style.id, Number.parseInt(event.target.value || '0', 10))}
-                        className="rounded-xl border border-gray-700 bg-darker px-4 py-3 text-center text-lg font-bold text-white outline-none transition focus:border-primary"
+                        className="h-14 min-w-0 flex-1 rounded-xl border border-gray-700 bg-darker px-4 text-center text-lg font-bold text-white outline-none transition focus:border-primary"
                       />
-                      <button type="button" className="rounded-xl border border-gray-700 bg-darker text-xl font-bold text-white transition hover:border-primary hover:text-primary" onClick={() => setQuantity(style.id, quantities[style.id] + 1)}>+</button>
+                      <button type="button" className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-gray-700 bg-darker text-xl font-bold text-white transition hover:border-primary hover:text-primary" onClick={() => setQuantity(style.id, quantities[style.id] + 1)}>+</button>
                     </div>
                   </div>
                 ))}
