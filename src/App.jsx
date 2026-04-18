@@ -11,10 +11,13 @@ import WhyUs from './pages/WhyUs';
 import StormDamage from './pages/StormDamage';
 import ScrollToTop from './components/ScrollToTop';
 import { Phone } from 'lucide-react';
+import GoogleAdsTag from './components/GoogleAdsTag';
+import { trackPhoneConversion } from './lib/googleAds';
 
 function App() {
   return (
     <Router>
+      <GoogleAdsTag />
       <ScrollToTop />
       <div className="flex flex-col min-h-screen bg-dark text-white font-sans">
         <Header />
@@ -37,6 +40,7 @@ function App() {
         {/* Floating Mobile CTA */}
         <a 
           href="tel:+13145550123" 
+          onClick={trackPhoneConversion}
           className="md:hidden fixed bottom-6 right-6 bg-primary text-white p-4 rounded-full shadow-2xl z-50 flex items-center justify-center hover:bg-primary-dark transition-colors"
           aria-label="Call Now"
         >

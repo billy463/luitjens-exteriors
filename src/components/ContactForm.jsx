@@ -1,4 +1,5 @@
 import { MapPin, Phone } from 'lucide-react';
+import { trackPhoneConversion } from '../lib/googleAds';
 
 export default function ContactForm() {
   return (
@@ -31,7 +32,13 @@ export default function ContactForm() {
                   </div>
                   <div>
                     <h4 className="font-bold text-xl mb-1">Call Us Directly</h4>
-                    <p className="text-gray-400 text-lg hover:text-white transition cursor-pointer">(314) 555-0123</p>
+                    <a
+                      href="tel:+13145550123"
+                      onClick={trackPhoneConversion}
+                      className="text-gray-400 text-lg hover:text-white transition"
+                    >
+                      (314) 555-0123
+                    </a>
                   </div>
                 </div>
               </div>
