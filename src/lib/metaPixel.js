@@ -34,3 +34,8 @@ export function trackMetaPageView() {
   if (typeof window === 'undefined' || typeof window.fbq !== 'function') return;
   window.fbq('track', 'PageView');
 }
+
+export function trackMetaLead() {
+  if (typeof window === 'undefined' || typeof window.fbq !== 'function') return;
+  window.fbq('track', 'Lead');
+}

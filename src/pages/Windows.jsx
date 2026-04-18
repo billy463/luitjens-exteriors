@@ -10,6 +10,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import { trackLeadConversion, trackPhoneConversion } from '../lib/googleAds';
+import { trackMetaLead } from '../lib/metaPixel';
 
 const faqs = [
   {
@@ -140,6 +141,7 @@ export default function Windows() {
         throw new Error(payload?.error || 'Unable to submit your request right now.');
       }
 
+      trackMetaLead();
       trackLeadConversion();
       setSubmitState({
         status: 'success',
