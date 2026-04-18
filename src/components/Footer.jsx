@@ -36,7 +36,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-slate-400">
               <li>St. Louis, MO</li>
               <li>Jefferson County</li>
-              <li>Phone: (314) 555-0123</li>
+              <li>Phone: (314) 882-0973</li>
             </ul>
           </div>
         </div>

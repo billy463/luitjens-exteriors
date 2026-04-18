@@ -102,8 +102,8 @@ export default function Windows() {
     };
   }, []);
 
-  const phoneHref = 'tel:+13145550123';
-  const formattedPhone = '(314) 555-0123';
+  const phoneHref = 'tel:+13148820973';
+  const formattedPhone = '(314) 882-0973';
 
   const trustItems = useMemo(
     () => [

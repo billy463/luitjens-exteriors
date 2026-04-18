@@ -39,7 +39,7 @@ function App() {
         
         {/* Floating Mobile CTA */}
         <a 
-          href="tel:+13145550123" 
+          href="tel:+13148820973" 
           onClick={trackPhoneConversion}
           className="md:hidden fixed bottom-6 right-6 bg-primary text-white p-4 rounded-full shadow-2xl z-50 flex items-center justify-center hover:bg-primary-dark transition-colors"
           aria-label="Call Now"
