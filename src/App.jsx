@@ -12,12 +12,14 @@ import StormDamage from './pages/StormDamage';
 import ScrollToTop from './components/ScrollToTop';
 import { Phone } from 'lucide-react';
 import GoogleAdsTag from './components/GoogleAdsTag';
+import MetaPixelTracker from './components/MetaPixelTracker';
 import { trackPhoneConversion } from './lib/googleAds';
 
 function App() {
   return (
     <Router>
       <GoogleAdsTag />
+      <MetaPixelTracker />
       <ScrollToTop />
       <div className="flex flex-col min-h-screen bg-dark text-white font-sans">
         <Header />
