@@ -253,7 +253,6 @@ export default function WindowsLanding() {
             <p className="mt-4 max-w-3xl text-base leading-relaxed text-gray-300 md:text-lg">
               New energy-efficient windows can help lower your home's indoor temperature by 2-5 degrees, saving hundreds on your energy bills. They also increase property value and instantly upgrade curb appeal.
             </p>
-            <p className="mt-3 text-sm font-semibold text-primary md:text-base">5.0 ★★★★★ on Google</p>
             <div className="mt-4 flex flex-wrap gap-x-1.5 gap-y-2 border-y border-gray-700 py-2.5 text-[11px] text-gray-300 md:mt-6 md:py-3 md:text-xs">
               <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="h-1.5 w-1.5 rounded-full bg-primary" />10+ Years in St. Louis</span>
               <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Family-owned</span>
@@ -460,6 +459,7 @@ export default function WindowsLanding() {
         <div className="mx-auto max-w-6xl px-4 md:px-6">
           <p className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">What St. Louis says</p>
           <h2 className="mt-2 text-center text-3xl font-extrabold text-white md:text-4xl">Trusted by families across the metro.</h2>
+          <p className="mt-3 text-center text-sm font-semibold text-primary md:text-base">5.0 ★★★★★ on Google</p>
           <div className="mt-10 grid gap-5 md:grid-cols-3">
             {[
               {
