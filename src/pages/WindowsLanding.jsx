@@ -163,6 +163,17 @@ export default function WindowsLanding() {
     }
   };
 
+  const getLogoPositionClass = name => {
+    switch (name) {
+      case 'Simonton':
+        return '-translate-x-1.5';
+      case 'Pella':
+        return '-translate-x-1';
+      default:
+        return '';
+    }
+  };
+
   return (
     <div className="w-full bg-dark text-gray-200 pb-24 md:pb-0">
       <header className="sticky top-0 z-40 border-b border-gray-800 bg-darker/95 backdrop-blur">
@@ -182,7 +193,7 @@ export default function WindowsLanding() {
                     <img
                       src={brand.src}
                       alt={`${brand.name} logo`}
-                      className={`h-[130%] w-full object-contain opacity-95 ${getLogoCropClass(brand.name)}`}
+                      className={`h-[130%] w-full object-contain opacity-95 ${getLogoCropClass(brand.name)} ${getLogoPositionClass(brand.name)}`}
                       loading="lazy"
                       onError={() =>
                         setLogoFailures(current => ({
