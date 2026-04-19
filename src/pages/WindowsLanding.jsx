@@ -14,25 +14,6 @@ const brandOptions = [
   'Andersen (ultra-premium)',
 ];
 
-const brandLogos = [
-  {
-    name: 'Wincore',
-    src: '/images/brands/wincore.jfif',
-  },
-  {
-    name: 'Simonton',
-    src: '/images/brands/simonton.jfif',
-  },
-  {
-    name: 'Pella',
-    src: '/images/brands/pella.jfif',
-  },
-  {
-    name: 'Andersen',
-    src: '/images/brands/anderson.jfif',
-  },
-];
-
 const comparisonRows = [
   {
     label: 'Window Quality',
@@ -109,7 +90,6 @@ function upsertMeta(attr, key, content) {
 export default function WindowsLanding() {
   const [formData, setFormData] = useState(initialForm);
   const [submitState, setSubmitState] = useState({ status: 'idle', message: '' });
-  const [logoFailures, setLogoFailures] = useState({});
   const [comparisonTarget, setComparisonTarget] = useState('bigBox');
   const [showMobileStickyCta, setShowMobileStickyCta] = useState(false);
 
@@ -174,33 +154,6 @@ export default function WindowsLanding() {
     }
   };
 
-  const getLogoCropClass = name => {
-    switch (name) {
-      case 'Wincore':
-        return 'scale-[1.38]';
-      case 'Simonton':
-        return 'scale-[1.35]';
-      case 'Pella':
-        return 'scale-[1.2]';
-      case 'Andersen':
-        return 'scale-[1.34]';
-      default:
-        return 'scale-100';
-    }
-  };
-
-  const getLogoPositionClass = name => {
-    switch (name) {
-      case 'Wincore':
-      case 'Simonton':
-      case 'Andersen':
-      case 'Pella':
-        return '';
-      default:
-        return '';
-    }
-  };
-
   return (
     <div className="w-full bg-dark text-gray-200 pb-24 md:pb-0">
       <header className="sticky top-0 z-40 border-b border-gray-800 bg-darker/95 backdrop-blur">
@@ -222,29 +175,6 @@ export default function WindowsLanding() {
       <section id="windows" className="border-b border-gray-800 bg-darker">
         <div className="container mx-auto grid max-w-6xl gap-4 px-4 pb-6 pt-3 md:grid-cols-5 md:gap-8 md:px-6 md:py-12">
           <div className="order-1 md:col-span-3">
-            <p className="mb-3 whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.06em] text-primary md:text-sm md:tracking-[0.16em]">Competitive window pricing. Real craftsmanship. Family-owned.</p>
-            <div className="mb-3 grid grid-cols-4 items-end gap-2 md:gap-3">
-              {brandLogos.map(brand => (
-                <div key={brand.name} className="flex h-14 w-full items-end justify-center overflow-hidden md:h-16">
-                  {!logoFailures[brand.name] ? (
-                    <img
-                      src={brand.src}
-                      alt={`${brand.name} logo`}
-                      className={`h-[145%] w-full object-contain object-center opacity-95 ${getLogoCropClass(brand.name)} ${getLogoPositionClass(brand.name)}`}
-                      loading="lazy"
-                      onError={() =>
-                        setLogoFailures(current => ({
-                          ...current,
-                          [brand.name]: true,
-                        }))
-                      }
-                    />
-                  ) : (
-                    <span className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-300 md:text-sm">{brand.name}</span>
-                  )}
-                </div>
-              ))}
-            </div>
             <h1 className="text-4xl font-extrabold leading-[1.05] text-white md:text-6xl">
               Lower your energy bills
               <br />
