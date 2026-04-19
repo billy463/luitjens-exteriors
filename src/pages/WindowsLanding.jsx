@@ -162,12 +162,20 @@ export default function WindowsLanding() {
             <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">Window Replacement - St. Louis / Wincore - Simonton - Pella - Andersen</p>
             <div className="mb-6 grid grid-cols-4 items-center gap-2 md:gap-5">
               {brandLogos.map(brand => (
-                <div key={brand.name} className="flex h-12 w-full items-center justify-center md:h-16">
+                <div key={brand.name} className="flex h-16 w-full items-center justify-center overflow-visible md:h-20">
                   {!logoFailures[brand.name] ? (
                     <img
                       src={brand.src}
                       alt={`${brand.name} logo`}
-                      className="h-full w-full max-w-[120px] object-contain opacity-95 md:max-w-[140px]"
+                      className={`h-full w-full object-contain opacity-95 ${
+                        brand.name === 'Wincore'
+                          ? 'scale-[1.55]'
+                          : brand.name === 'Simonton'
+                            ? 'scale-[1.55]'
+                            : brand.name === 'Pella'
+                              ? 'scale-[1.45]'
+                              : 'scale-[1.55]'
+                      }`}
                       loading="lazy"
                       onError={() =>
                         setLogoFailures(current => ({
