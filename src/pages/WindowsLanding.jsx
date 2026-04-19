@@ -24,6 +24,21 @@ const tiers = [
   ['Ultra-Premium', 'Andersen', '$600-$3,500+/window', 'Heritage wood-clad and Fibrex composite. 130+ years.', 'Custom & luxury renovations'],
 ];
 
+const analyzerSteps = [
+  {
+    title: 'Enter your address',
+    body: "We pull your home's publicly available listing photos from Zillow, Redfin, Realtor - whatever's on file. No visit needed.",
+  },
+  {
+    title: 'We count your windows',
+    body: 'Our AI identifies every window it can see by type - double-hung, casement, picture, bay. Usually takes 60 to 120 seconds.',
+  },
+  {
+    title: 'You get a text with your range',
+    body: 'Wincore at the low end, Andersen at the high end. Most homes like yours land in the middle. Free on-site confirmation scheduled at your convenience.',
+  },
+];
+
 const faqs = [
   [
     'Why are your prices higher than the "$189" window ads I\'ve seen?',
