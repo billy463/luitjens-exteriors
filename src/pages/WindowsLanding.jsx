@@ -264,7 +264,7 @@ export default function WindowsLanding() {
           <div className="order-2 md:col-span-2">
             <div id="windows-form" className="rounded-2xl border border-gray-700 bg-dark p-5 shadow-xl md:p-6">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">Free - Built from your home's photos</p>
-              <h2 className="mt-1 text-2xl font-extrabold text-white">See your home's real range in 2 minutes.</h2>
+              <h2 className="mt-1 text-2xl font-extrabold text-white">3-Minute Window Estimate. Real Numbers. All-In Pricing.</h2>
               <p className="mt-2 text-sm text-gray-300">No salesperson, no kitchen-table close, no second visit required.</p>
 
               <form onSubmit={onSubmit} className="mt-4 space-y-3">
