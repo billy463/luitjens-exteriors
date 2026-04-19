@@ -186,7 +186,7 @@ export default function WindowsLanding() {
       <section id="windows" className="border-b border-gray-800 bg-darker">
         <div className="container mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-5 md:px-6 md:py-16">
           <div className="order-1 md:col-span-3">
-            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">Window Replacement - St. Louis / Wincore - Simonton - Pella - Andersen</p>
+            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">Competitive window pricing. Real craftsmanship. Family-owned.</p>
             <div className="mb-4 grid grid-cols-4 items-end gap-2 md:gap-3">
               {brandLogos.map(brand => (
                 <div key={brand.name} className="flex h-14 w-full items-end justify-center overflow-hidden md:h-16">
