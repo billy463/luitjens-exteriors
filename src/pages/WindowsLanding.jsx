@@ -40,6 +40,45 @@ const tiers = [
   ['Ultra-Premium', 'Andersen', '$600-$3,500+/window', 'Heritage wood-clad and Fibrex composite.', 'Custom and luxury renovations'],
 ];
 
+const comparisonRows = [
+  {
+    label: 'Window Quality',
+    bigBox: 'Builder-grade house brands with limited glass and frame options',
+    luitjens: 'Your pick of four top brands - Wincore, Simonton, Pella, and Andersen',
+    franchise: 'Usually one proprietary brand with limited flexibility',
+  },
+  {
+    label: 'The Real Price',
+    bigBox: 'Low sticker price grows once disposal, capping, Low-E, and argon are added',
+    luitjens: 'Transparent pricing with tear-out, disposal, Low-E, argon, and capping included',
+    franchise: 'Higher price structure from ad spend, franchise fees, and corporate overhead',
+  },
+  {
+    label: "Who's At Your Door",
+    bigBox: "Subcontractors you don't know ahead of time",
+    luitjens: 'Our trained crew in Luitjens shirts, with consistent install standards',
+    franchise: 'Install teams can vary by market and subcontracting model',
+  },
+  {
+    label: 'Permits & Code',
+    bigBox: 'Often left to homeowners to navigate',
+    luitjens: 'We pull permits and manage inspections from start to finish',
+    franchise: 'Handled and often rolled into marked-up pricing',
+  },
+  {
+    label: 'Sales Experience',
+    bigBox: 'Self-serve process with limited project-specific guidance',
+    luitjens: 'Straight quote with no 3-hour pitch and no sign-tonight pressure',
+    franchise: 'Long in-home presentations with urgency-based discounts',
+  },
+  {
+    label: 'Warranty & Service',
+    bigBox: 'Service quality depends heavily on third-party install crews',
+    luitjens: 'Manufacturer-backed coverage plus a local team you can call directly',
+    franchise: 'Support often routed through layered call-center systems',
+  },
+];
+
 const faqItems = [
   [
     'Why are your prices higher than the "$189" window ads I\'ve seen?',
