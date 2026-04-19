@@ -33,21 +33,6 @@ const brandLogos = [
   },
 ];
 
-const analyzerSteps = [
-  {
-    title: 'Enter your address',
-    body: "We pull your home's publicly available listing photos from Zillow, Redfin, and Realtor.",
-  },
-  {
-    title: 'We count your windows',
-    body: 'We identify visible windows by type and estimate your project scope.',
-  },
-  {
-    title: 'You get a text with your range',
-    body: 'Wincore on the low end, Andersen on the high end, with Pella and Simonton in between.',
-  },
-];
-
 const tiers = [
   ['Good', 'Wincore', '$300-$800/window', 'Dependable vinyl with a lifetime limited warranty.', 'Budget-conscious replacements'],
   ['Better', 'Simonton', '$300-$900/window', 'Made in USA. ProNetwork certified. Good Housekeeping Seal.', 'Best value-to-quality balance'],
@@ -282,24 +267,102 @@ export default function WindowsLanding() {
         </div>
       </section>
 
-      <section id="how" className="bg-dark py-14 md:py-20">
-        <div className="mx-auto max-w-5xl px-4 text-center md:px-6">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">How it works</p>
-          <h2 className="mt-2 text-3xl font-extrabold text-white md:text-4xl">Your quote, grounded in your actual home.</h2>
-          <div className="mt-10 grid gap-6 text-left md:grid-cols-3">
-            {analyzerSteps.map((item, idx) => (
-              <article key={item.title} className="rounded-xl border border-gray-700 bg-darker p-6">
-                <p className="text-3xl font-extrabold text-primary">{idx + 1}</p>
-                <h3 className="mt-2 text-lg font-bold text-white">{item.title}</h3>
-                <p className="mt-2 text-sm text-gray-300">{item.body}</p>
-              </article>
-            ))}
+      <section id="why-different" className="bg-dark py-14 md:py-20">
+        <div className="mx-auto max-w-6xl px-4 md:px-6">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">Why St. Louis Homeowners Choose Luitjens</p>
+            <h2 className="mt-2 text-3xl font-extrabold text-white md:text-5xl">
+              The smart middle between cheap surprises
+              <br />
+              <span className="text-primary">and overpriced pressure.</span>
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-base text-gray-300 md:text-lg">
+              Big box stores lure you with a low sticker price that grows once add-ons stack up. National sales organizations offer quality but layer in heavy overhead. We do it the right way, for the right price.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-5 md:grid-cols-3 md:items-stretch">
+            <article className="rounded-2xl border border-gray-700 bg-darker p-5 md:p-6">
+              <h3 className="text-xl font-extrabold text-gray-100">Big Box Stores</h3>
+              <p className="mt-1 text-sm text-gray-400">Home Depot, Lowe&apos;s &amp; similar chains</p>
+              <div className="mt-5 space-y-4">
+                <div className="border-t border-gray-700 pt-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">Window Quality</p>
+                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">✕</span>Builder-grade house brands with limited glass and frame options</p>
+                </div>
+                <div className="border-t border-gray-700 pt-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">The Real Price</p>
+                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">✕</span>Low sticker price grows once disposal, capping, Low-E, and argon are added</p>
+                </div>
+                <div className="border-t border-gray-700 pt-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">Who&apos;s At Your Door</p>
+                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">✕</span>Subcontractors you don&apos;t know ahead of time</p>
+                </div>
+                <div className="border-t border-gray-700 pt-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">Permits &amp; Code</p>
+                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">✕</span>Often left to homeowners to navigate</p>
+                </div>
+              </div>
+            </article>
+
+            <article className="relative rounded-2xl border-2 border-primary bg-dark p-5 shadow-xl shadow-primary/10 md:-translate-y-2 md:p-6">
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Best Value</span>
+              <h3 className="text-xl font-extrabold text-white md:text-2xl">Luitjens Exteriors</h3>
+              <p className="mt-1 text-sm text-primary/90">Local, owner-led, no games</p>
+              <div className="mt-5 space-y-4">
+                <div className="border-t border-gray-700 pt-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">Window Quality</p>
+                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-100"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-500/15 text-[11px] font-black text-green-300">✓</span>Your pick of four top brands — Wincore, Simonton, Pella, and Andersen</p>
+                </div>
+                <div className="border-t border-gray-700 pt-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">The Real Price</p>
+                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-100"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-500/15 text-[11px] font-black text-green-300">✓</span>Transparent pricing with tear-out, disposal, Low-E, argon, and capping included</p>
+                </div>
+                <div className="border-t border-gray-700 pt-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">Who&apos;s At Your Door</p>
+                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-100"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-500/15 text-[11px] font-black text-green-300">✓</span>Our trained crew in Luitjens shirts, with consistent install standards</p>
+                </div>
+                <div className="border-t border-gray-700 pt-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">Permits &amp; Code</p>
+                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-100"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-500/15 text-[11px] font-black text-green-300">✓</span>We pull permits and manage inspections from start to finish</p>
+                </div>
+              </div>
+            </article>
+
+            <article className="rounded-2xl border border-gray-700 bg-darker p-5 md:p-6">
+              <h3 className="text-xl font-extrabold text-gray-100">National Franchises</h3>
+              <p className="mt-1 text-sm text-gray-400">TV-advertised in-home sales brands</p>
+              <div className="mt-5 space-y-4">
+                <div className="border-t border-gray-700 pt-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">Window Quality</p>
+                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">✕</span>Usually one proprietary brand with limited flexibility</p>
+                </div>
+                <div className="border-t border-gray-700 pt-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">The Real Price</p>
+                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">✕</span>Higher price structure from ad spend, franchise fees, and corporate overhead</p>
+                </div>
+                <div className="border-t border-gray-700 pt-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">Who&apos;s At Your Door</p>
+                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">✕</span>Install teams can vary by market and subcontracting model</p>
+                </div>
+                <div className="border-t border-gray-700 pt-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">Sales Experience</p>
+                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">✕</span>Long in-home sales presentations with urgency-based discounts</p>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div className="mt-10 text-center">
+            <a href="#windows-form" className="inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-3.5 text-base font-bold text-white transition hover:bg-primary-dark">
+              Get Your Free Quote <ArrowRight className="h-4 w-4" />
+            </a>
+            <p className="mt-3 text-sm text-gray-400">No pressure. No gimmicks. Just a straight price on quality windows.</p>
           </div>
         </div>
       </section>
 
-      <section id="why-different" className="border-y border-gray-800 bg-darker py-14 md:py-20">
-        <div id="brands" />
+      <section id="brands" className="border-y border-gray-800 bg-darker py-14 md:py-20">
         <div className="mx-auto max-w-6xl px-4 md:px-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">The four-brand promise</p>
           <h2 className="mt-2 max-w-3xl text-3xl font-extrabold text-white md:text-4xl">Good, better, best, ultra-premium - all under one roof.</h2>
