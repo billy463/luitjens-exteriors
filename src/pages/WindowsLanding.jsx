@@ -281,27 +281,20 @@ export default function WindowsLanding() {
             </p>
           </div>
 
-          <div className="mt-10 grid gap-5 md:grid-cols-3 md:items-stretch">
+          <div className="mt-10 hidden gap-5 md:grid md:grid-cols-3 md:items-stretch">
             <article className="rounded-2xl border border-gray-700 bg-darker p-5 md:p-6">
               <h3 className="text-xl font-extrabold text-gray-100">Big Box Stores</h3>
               <p className="mt-1 text-sm text-gray-400">Home Depot, Lowe&apos;s &amp; similar chains</p>
               <div className="mt-5 space-y-4">
-                <div className="border-t border-gray-700 pt-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">Window Quality</p>
-                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">✕</span>Builder-grade house brands with limited glass and frame options</p>
-                </div>
-                <div className="border-t border-gray-700 pt-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">The Real Price</p>
-                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">✕</span>Low sticker price grows once disposal, capping, Low-E, and argon are added</p>
-                </div>
-                <div className="border-t border-gray-700 pt-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">Who&apos;s At Your Door</p>
-                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">✕</span>Subcontractors you don&apos;t know ahead of time</p>
-                </div>
-                <div className="border-t border-gray-700 pt-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">Permits &amp; Code</p>
-                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">✕</span>Often left to homeowners to navigate</p>
-                </div>
+                {comparisonRows.map(row => (
+                  <div key={`desktop-big-${row.label}`} className="border-t border-gray-700 pt-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">{row.label}</p>
+                    <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300">
+                      <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">x</span>
+                      {row.bigBox}
+                    </p>
+                  </div>
+                ))}
               </div>
             </article>
 
@@ -310,22 +303,15 @@ export default function WindowsLanding() {
               <h3 className="text-xl font-extrabold text-white md:text-2xl">Luitjens Exteriors</h3>
               <p className="mt-1 text-sm text-primary/90">Local, owner-led, no games</p>
               <div className="mt-5 space-y-4">
-                <div className="border-t border-gray-700 pt-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">Window Quality</p>
-                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-100"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-500/15 text-[11px] font-black text-green-300">✓</span>Your pick of four top brands — Wincore, Simonton, Pella, and Andersen</p>
-                </div>
-                <div className="border-t border-gray-700 pt-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">The Real Price</p>
-                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-100"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-500/15 text-[11px] font-black text-green-300">✓</span>Transparent pricing with tear-out, disposal, Low-E, argon, and capping included</p>
-                </div>
-                <div className="border-t border-gray-700 pt-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">Who&apos;s At Your Door</p>
-                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-100"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-500/15 text-[11px] font-black text-green-300">✓</span>Our trained crew in Luitjens shirts, with consistent install standards</p>
-                </div>
-                <div className="border-t border-gray-700 pt-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">Permits &amp; Code</p>
-                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-100"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-500/15 text-[11px] font-black text-green-300">✓</span>We pull permits and manage inspections from start to finish</p>
-                </div>
+                {comparisonRows.map(row => (
+                  <div key={`desktop-luitjens-${row.label}`} className="border-t border-gray-700 pt-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">{row.label}</p>
+                    <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-100">
+                      <Check className="mt-0.5 h-5 w-5 rounded-full bg-green-500/15 p-1 text-green-300" />
+                      {row.luitjens}
+                    </p>
+                  </div>
+                ))}
               </div>
             </article>
 
@@ -333,22 +319,73 @@ export default function WindowsLanding() {
               <h3 className="text-xl font-extrabold text-gray-100">National Franchises</h3>
               <p className="mt-1 text-sm text-gray-400">TV-advertised in-home sales brands</p>
               <div className="mt-5 space-y-4">
-                <div className="border-t border-gray-700 pt-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">Window Quality</p>
-                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">✕</span>Usually one proprietary brand with limited flexibility</p>
-                </div>
-                <div className="border-t border-gray-700 pt-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">The Real Price</p>
-                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">✕</span>Higher price structure from ad spend, franchise fees, and corporate overhead</p>
-                </div>
-                <div className="border-t border-gray-700 pt-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">Who&apos;s At Your Door</p>
-                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">✕</span>Install teams can vary by market and subcontracting model</p>
-                </div>
-                <div className="border-t border-gray-700 pt-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">Sales Experience</p>
-                  <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300"><span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">✕</span>Long in-home sales presentations with urgency-based discounts</p>
-                </div>
+                {comparisonRows.map(row => (
+                  <div key={`desktop-franchise-${row.label}`} className="border-t border-gray-700 pt-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">{row.label}</p>
+                    <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300">
+                      <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">x</span>
+                      {row.franchise}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </article>
+          </div>
+
+          <div className="mt-10 space-y-4 md:hidden">
+            <article className="relative rounded-2xl border-2 border-primary bg-dark p-5 shadow-xl shadow-primary/10">
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Best Value</span>
+              <h3 className="text-xl font-extrabold text-white">Luitjens Exteriors</h3>
+              <p className="mt-1 text-sm text-primary/90">Local, owner-led, no games</p>
+              <div className="mt-4 space-y-3">
+                {comparisonRows.map(row => (
+                  <div key={`mobile-luitjens-${row.label}`} className="border-t border-gray-700 pt-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">{row.label}</p>
+                    <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-100">
+                      <Check className="mt-0.5 h-5 w-5 rounded-full bg-green-500/15 p-1 text-green-300" />
+                      {row.luitjens}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </article>
+
+            <div className="rounded-xl border border-gray-700 bg-darker p-1">
+              <div className="grid grid-cols-2 gap-1">
+                <button
+                  type="button"
+                  onClick={() => setComparisonTarget('bigBox')}
+                  className={`rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] transition ${comparisonTarget === 'bigBox' ? 'bg-primary text-white' : 'text-gray-300 hover:bg-dark'}`}
+                >
+                  Compare: Big Box
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setComparisonTarget('franchise')}
+                  className={`rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] transition ${comparisonTarget === 'franchise' ? 'bg-primary text-white' : 'text-gray-300 hover:bg-dark'}`}
+                >
+                  Compare: Franchise
+                </button>
+              </div>
+            </div>
+
+            <article className="rounded-2xl border border-gray-700 bg-darker p-5">
+              <h3 className="text-xl font-extrabold text-gray-100">
+                {comparisonTarget === 'bigBox' ? 'Big Box Stores' : 'National Franchises'}
+              </h3>
+              <p className="mt-1 text-sm text-gray-400">
+                {comparisonTarget === 'bigBox' ? "Home Depot, Lowe's & similar chains" : 'TV-advertised in-home sales brands'}
+              </p>
+              <div className="mt-4 space-y-3">
+                {comparisonRows.map(row => (
+                  <div key={`mobile-compare-${row.label}`} className="border-t border-gray-700 pt-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">{row.label}</p>
+                    <p className="mt-1.5 flex items-start gap-2 text-sm text-gray-300">
+                      <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-[11px] font-black text-red-300">x</span>
+                      {comparisonTarget === 'bigBox' ? row.bigBox : row.franchise}
+                    </p>
+                  </div>
+                ))}
               </div>
             </article>
           </div>
