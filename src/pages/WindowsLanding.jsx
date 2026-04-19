@@ -181,7 +181,7 @@ export default function WindowsLanding() {
       </header>
 
       <section id="windows" className="border-b border-gray-800 bg-darker">
-        <div className="container mx-auto grid max-w-6xl gap-4 px-4 pb-6 pt-3 md:grid-cols-5 md:gap-8 md:px-6 md:py-12">
+        <div className="container mx-auto grid max-w-6xl gap-4 px-4 pb-6 pt-2 md:grid-cols-5 md:gap-8 md:px-6 md:py-12">
           <div className="order-1 md:col-span-3">
             <h1 className="text-4xl font-extrabold leading-[1.05] text-white md:text-6xl">
               Lower your energy bills
@@ -197,11 +197,11 @@ export default function WindowsLanding() {
               <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Licensed & Insured</span>
               <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="h-1.5 w-1.5 rounded-full bg-primary" />BBB A Rated</span>
             </div>
-            <div className="mt-4 overflow-hidden rounded-xl border border-gray-700">
+            <div className="mt-3 overflow-hidden rounded-xl border border-gray-700 md:mt-4">
               <img
                 src="/images/windows-landing-hero-house.jpg"
                 alt="Recent Luitjens window project home"
-                className="h-auto w-full object-cover"
+                className="h-40 w-full object-cover sm:h-48 md:h-auto"
                 loading="lazy"
               />
             </div>
