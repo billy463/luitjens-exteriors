@@ -225,7 +225,7 @@ export default function WindowsLanding() {
               <span className="text-primary">with the right windows.</span>
             </h1>
             <p className="mt-5 max-w-3xl text-base leading-relaxed text-gray-300 md:text-lg">
-              If you came from Lexi's video, this is exactly where to start. We install <strong>all four</strong> - Wincore, Simonton, Pella, and Andersen - and help you choose the option that improves comfort and cuts energy loss without high-pressure sales. We handle permits, installation, and the full project from start to finish.
+              New energy-efficient windows can help lower your home's indoor temperature by 2-5 degrees, saving hundreds on energy bills over time. They also increase property value and instantly upgrade curb appeal.
             </p>
             <div className="mt-6 flex flex-wrap gap-2 border-y border-gray-700 py-3 text-xs text-gray-300">
               <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />10+ Years in St. Louis</span>
