@@ -194,7 +194,7 @@ export default function WindowsLanding() {
       </header>
 
       <section id="windows" className="border-b border-gray-800 bg-darker">
-        <div className="container mx-auto grid max-w-6xl gap-4 px-4 py-6 md:grid-cols-5 md:gap-8 md:px-6 md:py-12">
+        <div className="container mx-auto grid max-w-6xl gap-4 px-4 pb-6 pt-3 md:grid-cols-5 md:gap-8 md:px-6 md:py-12">
           <div className="order-1 md:col-span-3">
             <p className="mb-3 whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.06em] text-primary md:text-sm md:tracking-[0.16em]">Competitive window pricing. Real craftsmanship. Family-owned.</p>
             <div className="mb-3 grid grid-cols-4 items-end gap-2 md:gap-3">
