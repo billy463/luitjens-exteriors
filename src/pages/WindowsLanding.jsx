@@ -160,9 +160,9 @@ export default function WindowsLanding() {
         <div className="container mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-5 md:px-6 md:py-16">
           <div className="order-1 md:col-span-3">
             <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">Window Replacement - St. Louis / Wincore - Simonton - Pella - Andersen</p>
-            <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="mb-6 grid grid-cols-2 items-center gap-4 sm:grid-cols-4">
               {brandLogos.map(brand => (
-                <div key={brand.name} className="flex h-12 w-full items-center justify-center rounded-md border border-gray-700 bg-dark px-2 md:h-14">
+                <div key={brand.name} className="flex h-12 w-full items-center justify-center md:h-14">
                   {!logoFailures[brand.name] ? (
                     <img
                       src={brand.src}
