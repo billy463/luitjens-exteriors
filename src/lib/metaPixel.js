@@ -35,7 +35,11 @@ export function trackMetaPageView() {
   window.fbq('track', 'PageView');
 }
 
-export function trackMetaLead() {
+export function trackMetaLead(payload = {}) {
   if (typeof window === 'undefined' || typeof window.fbq !== 'function') return;
+  if (payload && Object.keys(payload).length > 0) {
+    window.fbq('track', 'Lead', payload);
+    return;
+  }
   window.fbq('track', 'Lead');
 }

@@ -18,29 +18,31 @@ import { trackPhoneConversion } from './lib/googleAds';
 
 function AppShell() {
   const location = useLocation();
-  const isStandaloneLanding = location.pathname.startsWith('/windows-landing');
+  const isLandingPage =
+    location.pathname === '/windows-landing' || location.pathname === '/window-landing';
 
   return (
     <div className="flex flex-col min-h-screen bg-dark text-white font-sans">
-      {!isStandaloneLanding && <Header />}
+      {!isLandingPage && <Header />}
 
-      <main className={isStandaloneLanding ? 'flex-grow' : 'flex-grow pt-[84px] md:pt-[96px]'}>
+      <main className={isLandingPage ? 'flex-grow' : 'flex-grow pt-[84px] md:pt-[96px]'}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/storm-damage" element={<StormDamage />} />
           <Route path="/roofing" element={<Roofing />} />
           <Route path="/siding" element={<Siding />} />
           <Route path="/windows" element={<Windows />} />
-          <Route path="/windows-landing/*" element={<WindowsLanding />} />
+          <Route path="/windows-landing" element={<WindowsLanding />} />
+          <Route path="/window-landing" element={<WindowsLanding />} />
           <Route path="/doors" element={<Doors />} />
           <Route path="/gutters" element={<Gutters />} />
           <Route path="/why-us" element={<WhyUs />} />
         </Routes>
       </main>
 
-      {!isStandaloneLanding && <Footer />}
+      {!isLandingPage && <Footer />}
 
-      {!isStandaloneLanding && (
+      {!isLandingPage && (
         <a
           href="tel:+13148820973"
           onClick={trackPhoneConversion}
