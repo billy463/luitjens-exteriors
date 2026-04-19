@@ -220,14 +220,15 @@ export default function WindowsLanding() {
               ))}
             </div>
             <h1 className="text-4xl font-extrabold leading-[1.05] text-white md:text-6xl">
-              Match the window to your home.
+              Lower your energy bills
               <br />
-              <span className="text-primary">Not the other way around.</span>
+              <span className="text-primary">with the right windows.</span>
             </h1>
             <p className="mt-5 max-w-3xl text-base leading-relaxed text-gray-300 md:text-lg">
-              Most St. Louis window companies push whichever brand they happen to sell. We install <strong>all four</strong> - Wincore, Simonton, Pella, and Andersen - and recommend the one that fits your home and budget. We handle permits. No high-pressure sales.
+              If you came from Lexi's video, this is exactly where to start. We install <strong>all four</strong> - Wincore, Simonton, Pella, and Andersen - and help you choose the option that improves comfort and cuts energy loss without high-pressure sales. We handle permits, installation, and the full project from start to finish.
             </p>
             <div className="mt-6 flex flex-wrap gap-2 border-y border-gray-700 py-3 text-xs text-gray-300">
+              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Built to reduce energy loss</span>
               <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />10+ Years in St. Louis</span>
               <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Family-owned</span>
               <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Licensed & insured</span>
