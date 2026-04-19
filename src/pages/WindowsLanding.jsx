@@ -228,11 +228,11 @@ export default function WindowsLanding() {
               If you came from Lexi's video, this is exactly where to start. We install <strong>all four</strong> - Wincore, Simonton, Pella, and Andersen - and help you choose the option that improves comfort and cuts energy loss without high-pressure sales. We handle permits, installation, and the full project from start to finish.
             </p>
             <div className="mt-6 flex flex-wrap gap-2 border-y border-gray-700 py-3 text-xs text-gray-300">
-              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Built to reduce energy loss</span>
               <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />10+ Years in St. Louis</span>
               <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Family-owned</span>
               <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Licensed & insured</span>
-              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />BBB A+</span>
+              <span className="basis-full" />
+              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />BBB A Rated</span>
               <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Authorized on all 4 brands</span>
             </div>
           </div>
