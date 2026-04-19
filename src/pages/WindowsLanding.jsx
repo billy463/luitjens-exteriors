@@ -231,7 +231,6 @@ export default function WindowsLanding() {
               <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />10+ Years in St. Louis</span>
               <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Family-owned</span>
               <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Licensed & insured</span>
-              <span className="basis-full" />
               <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />BBB A Rated</span>
             </div>
           </div>
