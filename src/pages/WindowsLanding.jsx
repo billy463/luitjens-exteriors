@@ -151,13 +151,13 @@ export default function WindowsLanding() {
   const getLogoCropClass = name => {
     switch (name) {
       case 'Wincore':
-        return 'scale-100';
+        return 'scale-[1.38]';
       case 'Simonton':
-        return 'scale-100';
+        return 'scale-[1.35]';
       case 'Pella':
-        return 'scale-[1.06]';
+        return 'scale-[1.2]';
       case 'Andersen':
-        return 'scale-100';
+        return 'scale-[1.34]';
       default:
         return 'scale-100';
     }
@@ -167,9 +167,9 @@ export default function WindowsLanding() {
     switch (name) {
       case 'Wincore':
       case 'Simonton':
-      case 'Pella':
       case 'Andersen':
-        return 'translate-x-0';
+      case 'Pella':
+        return '';
       default:
         return '';
     }
@@ -194,7 +194,7 @@ export default function WindowsLanding() {
                     <img
                       src={brand.src}
                       alt={`${brand.name} logo`}
-                      className={`h-full w-auto max-w-full object-contain object-center opacity-95 ${getLogoCropClass(brand.name)} ${getLogoPositionClass(brand.name)}`}
+                      className={`h-[145%] w-full object-contain object-center opacity-95 ${getLogoCropClass(brand.name)} ${getLogoPositionClass(brand.name)}`}
                       loading="lazy"
                       onError={() =>
                         setLogoFailures(current => ({
