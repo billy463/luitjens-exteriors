@@ -233,7 +233,6 @@ export default function WindowsLanding() {
               <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Licensed & insured</span>
               <span className="basis-full" />
               <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />BBB A Rated</span>
-              <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Authorized on all 4 brands</span>
             </div>
           </div>
 
