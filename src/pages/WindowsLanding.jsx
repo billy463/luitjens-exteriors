@@ -33,13 +33,6 @@ const brandLogos = [
   },
 ];
 
-const tiers = [
-  ['Good', 'Wincore', '$300-$800/window', 'Dependable vinyl with a lifetime limited warranty.', 'Budget-conscious replacements'],
-  ['Better', 'Simonton', '$300-$900/window', 'Made in USA. ProNetwork certified. Good Housekeeping Seal.', 'Best value-to-quality balance'],
-  ['Best', 'Pella', '$500-$2,000+/window', 'Premium aesthetics from vinyl to wood and composite.', 'Aesthetic-driven mid-premium'],
-  ['Ultra-Premium', 'Andersen', '$600-$3,500+/window', 'Heritage wood-clad and Fibrex composite.', 'Custom and luxury renovations'],
-];
-
 const comparisonRows = [
   {
     label: 'Window Quality',
@@ -435,25 +428,6 @@ export default function WindowsLanding() {
               Get Your Free Quote <ArrowRight className="h-4 w-4" />
             </a>
             <p className="mt-3 text-sm text-gray-400">No pressure. No gimmicks. Just a straight price on quality windows.</p>
-          </div>
-        </div>
-      </section>
-
-      <section id="brands" className="border-y border-gray-800 bg-darker py-14 md:py-20">
-        <div className="mx-auto max-w-6xl px-4 md:px-6">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">The four-brand promise</p>
-          <h2 className="mt-2 max-w-3xl text-3xl font-extrabold text-white md:text-4xl">Good, better, best, ultra-premium - all under one roof.</h2>
-          <div className="mt-10 grid gap-4 md:grid-cols-4">
-            {tiers.map(([tier, brand, range, value, bestFor], idx) => (
-              <article key={brand} className={`relative flex h-full flex-col rounded-2xl bg-dark p-6 ${idx === 2 ? 'border-2 border-primary shadow-lg' : 'border border-gray-700'}`}>
-                {idx === 2 && <span className="absolute -top-3 left-4 rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">Most popular</span>}
-                <p className={`text-[10px] uppercase tracking-[0.18em] ${idx === 2 ? 'font-semibold text-primary' : 'text-gray-400'}`}>{tier}</p>
-                <h3 className="mt-1 text-2xl font-extrabold text-white">{brand}</h3>
-                <p className="mt-1 text-sm font-semibold text-primary">{range}</p>
-                <p className="mt-4 text-sm text-gray-300">{value}</p>
-                <p className="mt-auto border-t border-gray-700 pt-5 text-xs text-gray-400">Best for: {bestFor}</p>
-              </article>
-            ))}
           </div>
         </div>
       </section>
