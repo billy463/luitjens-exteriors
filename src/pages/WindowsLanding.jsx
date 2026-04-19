@@ -230,7 +230,7 @@ export default function WindowsLanding() {
             <div className="mt-6 flex flex-wrap gap-x-1.5 gap-y-2 border-y border-gray-700 py-3 text-[11px] text-gray-300 md:text-xs">
               <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="h-1.5 w-1.5 rounded-full bg-primary" />10+ Years in St. Louis</span>
               <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Family-owned</span>
-              <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Licensed & insured</span>
+              <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Licensed & Insured</span>
               <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="h-1.5 w-1.5 rounded-full bg-primary" />BBB A Rated</span>
             </div>
           </div>
