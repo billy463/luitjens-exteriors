@@ -225,7 +225,7 @@ export default function WindowsLanding() {
               <span className="text-primary">with the right windows.</span>
             </h1>
             <p className="mt-5 max-w-3xl text-base leading-relaxed text-gray-300 md:text-lg">
-              New energy-efficient windows can help lower your home's indoor temperature by 2-5 degrees, saving hundreds on energy bills over time. They also increase property value and instantly upgrade curb appeal.
+              New energy-efficient windows can help lower your home's indoor temperature by 2-5 degrees, saving hundreds on your energy bills. They also increase property value and instantly upgrade curb appeal.
             </p>
             <div className="mt-6 flex flex-wrap gap-2 border-y border-gray-700 py-3 text-xs text-gray-300">
               <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" />10+ Years in St. Louis</span>
