@@ -151,13 +151,13 @@ export default function WindowsLanding() {
   const getLogoCropClass = name => {
     switch (name) {
       case 'Wincore':
-        return 'scale-[1.1]';
+        return 'scale-[1.22]';
       case 'Simonton':
-        return 'scale-[1.1]';
+        return 'scale-[1.18]';
       case 'Pella':
-        return 'scale-[1.05]';
+        return 'scale-[1.35]';
       case 'Andersen':
-        return 'scale-[1.1]';
+        return 'scale-[1.2]';
       default:
         return 'scale-100';
     }
@@ -165,10 +165,12 @@ export default function WindowsLanding() {
 
   const getLogoPositionClass = name => {
     switch (name) {
+      case 'Wincore':
+        return 'translate-x-0.5';
       case 'Simonton':
-        return '-translate-x-1.5';
+        return '-translate-x-2.5';
       case 'Pella':
-        return '-translate-x-1';
+        return '-translate-x-2';
       default:
         return '';
     }
@@ -186,14 +188,14 @@ export default function WindowsLanding() {
         <div className="container mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-5 md:px-6 md:py-16">
           <div className="order-1 md:col-span-3">
             <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">Window Replacement - St. Louis / Wincore - Simonton - Pella - Andersen</p>
-            <div className="mb-6 grid grid-cols-4 items-center gap-2 md:gap-4">
+            <div className="mb-4 grid grid-cols-4 items-end gap-2 md:gap-3">
               {brandLogos.map(brand => (
-                <div key={brand.name} className="flex h-16 w-full items-center justify-center overflow-hidden md:h-20">
+                <div key={brand.name} className="flex h-12 w-full items-end justify-center overflow-hidden md:h-14">
                   {!logoFailures[brand.name] ? (
                     <img
                       src={brand.src}
                       alt={`${brand.name} logo`}
-                      className={`h-[130%] w-full object-contain opacity-95 ${getLogoCropClass(brand.name)} ${getLogoPositionClass(brand.name)}`}
+                      className={`h-full w-full object-contain opacity-95 ${getLogoCropClass(brand.name)} ${getLogoPositionClass(brand.name)}`}
                       loading="lazy"
                       onError={() =>
                         setLogoFailures(current => ({
