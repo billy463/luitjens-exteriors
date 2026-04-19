@@ -151,13 +151,13 @@ export default function WindowsLanding() {
   const getLogoCropClass = name => {
     switch (name) {
       case 'Wincore':
-        return 'scale-[1.22]';
+        return 'scale-[1.45]';
       case 'Simonton':
-        return 'scale-[1.18]';
+        return 'scale-[1.42]';
       case 'Pella':
-        return 'scale-[1.35]';
+        return 'scale-[1.62]';
       case 'Andersen':
-        return 'scale-[1.2]';
+        return 'scale-[1.48]';
       default:
         return 'scale-100';
     }
@@ -190,12 +190,12 @@ export default function WindowsLanding() {
             <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">Window Replacement - St. Louis / Wincore - Simonton - Pella - Andersen</p>
             <div className="mb-4 grid grid-cols-4 items-end gap-2 md:gap-3">
               {brandLogos.map(brand => (
-                <div key={brand.name} className="flex h-12 w-full items-end justify-center overflow-hidden md:h-14">
+                <div key={brand.name} className="flex h-14 w-full items-end justify-center overflow-hidden md:h-16">
                   {!logoFailures[brand.name] ? (
                     <img
                       src={brand.src}
                       alt={`${brand.name} logo`}
-                      className={`h-full w-full object-contain opacity-95 ${getLogoCropClass(brand.name)} ${getLogoPositionClass(brand.name)}`}
+                      className={`h-[165%] w-full object-contain opacity-95 ${getLogoCropClass(brand.name)} ${getLogoPositionClass(brand.name)}`}
                       loading="lazy"
                       onError={() =>
                         setLogoFailures(current => ({
