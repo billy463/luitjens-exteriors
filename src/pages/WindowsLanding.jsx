@@ -259,6 +259,14 @@ export default function WindowsLanding() {
               <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Licensed & Insured</span>
               <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="h-1.5 w-1.5 rounded-full bg-primary" />BBB A Rated</span>
             </div>
+            <div className="mt-4 overflow-hidden rounded-xl border border-gray-700">
+              <img
+                src="/images/windows-landing-hero-house.jpg"
+                alt="Recent Luitjens window project home"
+                className="h-auto w-full object-cover"
+                loading="lazy"
+              />
+            </div>
           </div>
 
           <div className="order-2 md:col-span-2">
