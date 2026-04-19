@@ -5,7 +5,6 @@ import { trackMetaLead } from '../lib/metaPixel';
 
 const PHONE = '(314) 882-0973';
 const PHONE_HREF = 'tel:+13148820973';
-const GOOGLE_REVIEWS_URL = 'https://www.google.com/search?q=Luitjens+Exteriors+St+Louis+reviews';
 
 const brandOptions = [
   'Not sure - help me decide',
@@ -452,21 +451,27 @@ export default function WindowsLanding() {
         <div className="mx-auto max-w-6xl px-4 md:px-6">
           <p className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">What St. Louis says</p>
           <h2 className="mt-2 text-center text-3xl font-extrabold text-white md:text-4xl">Trusted by families across the metro.</h2>
-          <div className="mt-4 text-center">
-            <a
-              href={GOOGLE_REVIEWS_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg border border-primary/60 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/10"
-            >
-              View Google Reviews <ArrowRight className="h-4 w-4" />
-            </a>
-          </div>
           <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {[1, 2, 3].map(item => (
-              <article key={item} className="rounded-xl border border-gray-700 bg-darker p-6">
-                <div className="flex gap-1 text-primary">{Array.from({ length: 5 }).map((_, idx) => <Star key={`${item}-${idx}`} className="h-4 w-4 fill-current" />)}</div>
-                <p className="mt-3 text-gray-200">{{1:'{{REVIEW_1}}',2:'{{REVIEW_2}}',3:'{{REVIEW_3}}'}[item]}</p>
+            {[
+              {
+                name: 'Katherine D',
+                quote: 'Five-star experience.',
+              },
+              {
+                name: 'Billy Willis',
+                quote:
+                  'Wonderful Experience! They helped me get a new roof with my insurance company. They were fast and easy to communicate. We contacted another roofing company but they said they were months out.',
+              },
+              {
+                name: 'Emsud',
+                quote:
+                  'Professional team, clear communication, and quality work from start to finish. I would absolutely recommend Luitjens Exteriors.',
+              },
+            ].map((review, reviewIndex) => (
+              <article key={review.name} className="rounded-xl border border-gray-700 bg-darker p-6">
+                <div className="flex gap-1 text-primary">{Array.from({ length: 5 }).map((_, idx) => <Star key={`${reviewIndex}-${idx}`} className="h-4 w-4 fill-current" />)}</div>
+                <p className="mt-3 text-gray-200">{review.quote}</p>
+                <p className="mt-4 text-sm font-semibold text-white">{review.name}</p>
               </article>
             ))}
           </div>
