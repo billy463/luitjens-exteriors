@@ -22,11 +22,21 @@ function AppShell() {
   const isLandingPage =
     normalizedPath === '/windows-landing' || normalizedPath === '/window-landing';
 
+  if (isLandingPage) {
+    return (
+      <div className="flex flex-col min-h-screen bg-dark text-white font-sans">
+        <main className="flex-grow">
+          <WindowsLanding />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-dark text-white font-sans">
-      {!isLandingPage && <Header />}
+      <Header />
 
-      <main className={isLandingPage ? 'flex-grow' : 'flex-grow pt-[84px] md:pt-[96px]'}>
+      <main className="flex-grow pt-[84px] md:pt-[96px]">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/storm-damage" element={<StormDamage />} />
@@ -41,18 +51,16 @@ function AppShell() {
         </Routes>
       </main>
 
-      {!isLandingPage && <Footer />}
+      <Footer />
 
-      {!isLandingPage && (
-        <a
-          href="tel:+13148820973"
-          onClick={trackPhoneConversion}
-          className="md:hidden fixed bottom-6 right-6 bg-primary text-white p-4 rounded-full shadow-2xl z-50 flex items-center justify-center hover:bg-primary-dark transition-colors"
-          aria-label="Call Now"
-        >
-          <Phone className="w-6 h-6" />
-        </a>
-      )}
+      <a
+        href="tel:+13148820973"
+        onClick={trackPhoneConversion}
+        className="md:hidden fixed bottom-6 right-6 bg-primary text-white p-4 rounded-full shadow-2xl z-50 flex items-center justify-center hover:bg-primary-dark transition-colors"
+        aria-label="Call Now"
+      >
+        <Phone className="w-6 h-6" />
+      </a>
     </div>
   );
 }
