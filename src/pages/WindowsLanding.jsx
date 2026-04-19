@@ -264,7 +264,7 @@ export default function WindowsLanding() {
           <div className="order-2 md:col-span-2">
             <div id="windows-form" className="rounded-2xl border border-gray-700 bg-dark p-5 shadow-xl md:p-6">
               <h2 className="mt-1 text-2xl font-extrabold text-white">3-Minute Window Estimate. Real Numbers. All-In Pricing.</h2>
-              <p className="mt-2 text-sm text-gray-300">No salesperson, no kitchen-table close, no second visit required.</p>
+              <p className="mt-2 text-sm text-gray-300">Enter your address. In about 30 seconds we'll find your home, count every window we can see, and show you a price range that includes everything - no $189 bait, no upsell stack.</p>
 
               <form onSubmit={onSubmit} className="mt-4 space-y-3">
                 <label className="block text-xs font-semibold text-gray-200">Street address
