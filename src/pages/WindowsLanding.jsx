@@ -117,6 +117,7 @@ export default function WindowsLanding() {
   const [formData, setFormData] = useState(initialForm);
   const [submitState, setSubmitState] = useState({ status: 'idle', message: '' });
   const [logoFailures, setLogoFailures] = useState({});
+  const [comparisonTarget, setComparisonTarget] = useState('bigBox');
 
   useEffect(() => {
     const title = 'Window Replacement in St. Louis | Wincore, Simonton, Pella & Andersen | Luitjens Exteriors';
