@@ -107,10 +107,18 @@ export default function WindowsLanding() {
   }, []);
 
   useEffect(() => {
-    const onScroll = () => setShowMobileStickyCta(window.scrollY > 140);
+    const onScroll = () => {
+      const triggerSection = document.getElementById('why-different');
+      const triggerPoint = triggerSection ? Math.max(triggerSection.offsetTop - 120, 220) : 420;
+      setShowMobileStickyCta(window.scrollY >= triggerPoint);
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
   }, []);
 
   const onSubmit = async event => {
