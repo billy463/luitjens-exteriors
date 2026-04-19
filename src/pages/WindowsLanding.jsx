@@ -148,6 +148,21 @@ export default function WindowsLanding() {
     }
   };
 
+  const getLogoCropClass = name => {
+    switch (name) {
+      case 'Wincore':
+        return 'scale-[1.1]';
+      case 'Simonton':
+        return 'scale-[1.1]';
+      case 'Pella':
+        return 'scale-[1.05]';
+      case 'Andersen':
+        return 'scale-[1.1]';
+      default:
+        return 'scale-100';
+    }
+  };
+
   return (
     <div className="w-full bg-dark text-gray-200 pb-24 md:pb-0">
       <header className="sticky top-0 z-40 border-b border-gray-800 bg-darker/95 backdrop-blur">
@@ -160,22 +175,14 @@ export default function WindowsLanding() {
         <div className="container mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-5 md:px-6 md:py-16">
           <div className="order-1 md:col-span-3">
             <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">Window Replacement - St. Louis / Wincore - Simonton - Pella - Andersen</p>
-            <div className="mb-6 grid grid-cols-4 items-center gap-2 md:gap-5">
+            <div className="mb-6 grid grid-cols-4 items-center gap-2 md:gap-4">
               {brandLogos.map(brand => (
-                <div key={brand.name} className="flex h-16 w-full items-center justify-center overflow-visible md:h-20">
+                <div key={brand.name} className="flex h-16 w-full items-center justify-center overflow-hidden md:h-20">
                   {!logoFailures[brand.name] ? (
                     <img
                       src={brand.src}
                       alt={`${brand.name} logo`}
-                      className={`h-full w-full object-contain opacity-95 ${
-                        brand.name === 'Wincore'
-                          ? 'scale-[1.55]'
-                          : brand.name === 'Simonton'
-                            ? 'scale-[1.55]'
-                            : brand.name === 'Pella'
-                              ? 'scale-[1.45]'
-                              : 'scale-[1.55]'
-                      }`}
+                      className={`h-[130%] w-full object-contain opacity-95 ${getLogoCropClass(brand.name)}`}
                       loading="lazy"
                       onError={() =>
                         setLogoFailures(current => ({
