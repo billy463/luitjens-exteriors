@@ -14,6 +14,25 @@ const brandOptions = [
   'Andersen (ultra-premium)',
 ];
 
+const brandLogos = [
+  {
+    name: 'Wincore',
+    src: 'https://www.wincorewindows.com/wp-content/uploads/wincore_logo_footer_rev.svg',
+  },
+  {
+    name: 'Simonton',
+    src: 'https://www.simonton.com/wp-content/uploads/2024/02/Simonton-logo-white.svg',
+  },
+  {
+    name: 'Pella',
+    src: 'https://www.pella.com/content/dam/pella-dot-com/images/global/pella-logo-white.svg',
+  },
+  {
+    name: 'Andersen',
+    src: 'https://www.andersenwindows.com/-/media/Project/AndersenCorporation/AndersenWindows/AndersenWindows/images/brand-launch-2020/andersen_logo_tm_rectangle_rgb.svg?h=120&iar=0&w=520',
+  },
+];
+
 const analyzerSteps = [
   {
     title: 'Enter your address',
@@ -73,6 +92,7 @@ function upsertMeta(attr, key, content) {
 export default function WindowsLanding() {
   const [formData, setFormData] = useState(initialForm);
   const [submitState, setSubmitState] = useState({ status: 'idle', message: '' });
+  const [logoFailures, setLogoFailures] = useState({});
 
   useEffect(() => {
     const title = 'Window Replacement in St. Louis | Wincore, Simonton, Pella & Andersen | Luitjens Exteriors';
@@ -140,6 +160,28 @@ export default function WindowsLanding() {
         <div className="container mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-5 md:px-6 md:py-16">
           <div className="order-1 md:col-span-3">
             <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">Window Replacement - St. Louis / Wincore - Simonton - Pella - Andersen</p>
+            <div className="mb-5 flex flex-wrap items-center gap-2">
+              {brandLogos.map(brand => (
+                <div key={brand.name} className="inline-flex h-8 items-center rounded-md border border-gray-700 bg-dark px-3">
+                  {!logoFailures[brand.name] ? (
+                    <img
+                      src={brand.src}
+                      alt={`${brand.name} logo`}
+                      className="max-h-4 w-auto object-contain opacity-90"
+                      loading="lazy"
+                      onError={() =>
+                        setLogoFailures(current => ({
+                          ...current,
+                          [brand.name]: true,
+                        }))
+                      }
+                    />
+                  ) : (
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-300">{brand.name}</span>
+                  )}
+                </div>
+              ))}
+            </div>
             <h1 className="text-4xl font-extrabold leading-[1.05] text-white md:text-6xl">
               Match the window to your home.
               <br />
