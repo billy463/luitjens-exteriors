@@ -14,28 +14,16 @@ import { trackMetaLead } from '../lib/metaPixel';
 
 const faqs = [
   {
-    question: 'How do I know if my windows need replacement?',
-    answer: 'Drafts, foggy glass, hard-to-open sashes, and rising utility bills are the most common signals.',
+    question: 'What does window replacement usually cost?',
+    answer: 'Pricing depends on window count, style, and glass package. We provide a clear written quote with no hidden add-ons.',
   },
   {
-    question: 'How long does window replacement take?',
-    answer: 'Most projects are completed in 1 to 2 days after materials are ready. We confirm schedule before install.',
+    question: 'Will new windows actually lower my energy bill?',
+    answer: 'Modern insulated windows can reduce drafts and HVAC strain. During your quote, we explain expected efficiency gains for your home.',
   },
   {
-    question: 'Do you offer financing?',
-    answer: 'We can discuss financing options during your estimate so you can choose the right payment approach.',
-  },
-  {
-    question: 'Will new windows reduce energy costs?',
-    answer: 'Quality window packages can improve comfort and reduce HVAC strain, especially with low-E glass options.',
-  },
-  {
-    question: 'Can you match my home style?',
-    answer: 'Yes. We review frame color, grid pattern, and style options to fit your architecture and goals.',
-  },
-  {
-    question: 'Is cleanup included?',
-    answer: 'Yes. Removal, cleanup, and final walkthrough are all part of the install process.',
+    question: 'How disruptive is install day?',
+    answer: 'Most projects finish in 1 to 2 days with full cleanup included. We confirm timeline before install begins.',
   },
 ];
 
@@ -63,7 +51,6 @@ const initialForm = {
   phone: '',
   email: '',
   address: '',
-  message: '',
 };
 
 export default function Windows() {
@@ -106,11 +93,20 @@ export default function Windows() {
   const phoneHref = 'tel:+13148820973';
   const formattedPhone = '(314) 882-0973';
 
-  const trustItems = useMemo(
+  const objectionItems = useMemo(
     () => [
-      { value: 'TODO+', label: 'Years serving St. Louis homeowners' },
-      { value: 'Local', label: 'Owner-led, neighborhood-first service' },
-      { value: 'Licensed', label: 'Licensed and insured installation team' },
+      {
+        title: 'Concerned about cost?',
+        detail: 'Get a clear written quote and financing options that fit your monthly budget.',
+      },
+      {
+        title: 'Unsure if it helps energy bills?',
+        detail: 'We show how upgraded glass and tighter seals improve comfort and reduce HVAC strain.',
+      },
+      {
+        title: 'Worried about install disruption?',
+        detail: 'Most installs are completed in 1 to 2 days with full cleanup included.',
+      },
     ],
     []
   );
@@ -165,10 +161,10 @@ export default function Windows() {
         <div className="container relative z-10 mx-auto max-w-6xl">
           <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-primary sm:text-sm">Window Replacement</p>
           <h1 className="max-w-3xl text-4xl font-extrabold leading-tight text-white sm:text-5xl md:text-6xl">
-            Window Replacement in St. Louis
+            Replace Your St. Louis Windows Without the High-Pressure Sales Pitch
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-gray-300 sm:text-xl">
-            Get an honest, local quote for energy-efficient window replacement with owner-led installation and no pressure.
+            Owner-led installs across St. Louis City, County, Jefferson, St. Charles, and Metro East.
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -185,7 +181,7 @@ export default function Windows() {
               onClick={scrollToForm}
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary/50 bg-primary/10 px-6 py-4 font-bold text-primary transition hover:bg-primary hover:text-white"
             >
-              Get Free Estimate
+              Get My Free Window Quote
               <ArrowRight className="h-5 w-5" />
             </button>
           </div>
@@ -194,10 +190,10 @@ export default function Windows() {
 
       <section className="border-b border-gray-800 bg-dark py-10">
         <div className="container mx-auto grid max-w-6xl gap-4 px-4 sm:grid-cols-3 sm:px-6">
-          {trustItems.map(item => (
-            <div key={item.label} className="rounded-2xl border border-gray-800 bg-darker p-5 text-center">
-              <p className="text-3xl font-black text-white">{item.value}</p>
-              <p className="mt-2 text-sm text-gray-400">{item.label}</p>
+          {objectionItems.map(item => (
+            <div key={item.title} className="rounded-2xl border border-gray-800 bg-darker p-5">
+              <p className="text-lg font-black text-white">{item.title}</p>
+              <p className="mt-2 text-sm text-gray-400">{item.detail}</p>
             </div>
           ))}
         </div>
@@ -205,9 +201,15 @@ export default function Windows() {
 
       <section className="bg-dark py-16">
         <div className="container mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="mb-10 max-w-3xl">
-            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">Why replace your windows?</h2>
-            <p className="mt-4 text-gray-400">Most homeowners call us for comfort first, then realize the curb appeal and resale upside comes with it.</p>
+          <div className="mb-10 grid gap-8 lg:grid-cols-2 lg:items-end">
+            <div className="max-w-3xl">
+              <h2 className="text-3xl font-extrabold text-white sm:text-4xl">Why replace your windows?</h2>
+              <p className="mt-4 text-gray-400">Most homeowners call us for comfort first, then realize the curb appeal and resale upside comes with it.</p>
+            </div>
+            <div>
+              <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary">How It Works</p>
+              <p className="mt-2 text-gray-400">Consultation - Measure - Install - Warranty</p>
+            </div>
           </div>
 
           <div className="grid gap-5 sm:grid-cols-3">
@@ -227,40 +229,7 @@ export default function Windows() {
               <p className="mt-2 text-gray-400">Window upgrades can improve buyer confidence when your home goes to market.</p>
             </article>
           </div>
-        </div>
-      </section>
-
-      <section className="border-y border-gray-800 bg-darker py-16">
-        <div className="container mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="mb-8 flex items-end justify-between gap-4">
-            <div>
-              <h2 className="text-3xl font-extrabold text-white sm:text-4xl">Before & After Gallery</h2>
-              <p className="mt-3 text-gray-400">Real projects and in-progress examples from local installs.</p>
-            </div>
-            <p className="text-xs uppercase tracking-[0.2em] text-primary">TODO: replace with final photos</p>
-          </div>
-
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            <figure className="overflow-hidden rounded-2xl border border-gray-800 bg-dark">
-              <img src="/images/doors-windows.jpeg" alt="Window project placeholder 1" className="h-56 w-full object-cover" />
-              <figcaption className="border-t border-gray-800 px-4 py-3 text-sm text-gray-400">Before: aging frames and fogged panes</figcaption>
-            </figure>
-            <figure className="overflow-hidden rounded-2xl border border-gray-800 bg-dark">
-              <img src="/images/Luijens-Exteriors-siding-roofing-doors-and-windows.jpg" alt="Window project placeholder 2" className="h-56 w-full object-cover" />
-              <figcaption className="border-t border-gray-800 px-4 py-3 text-sm text-gray-400">After: updated style and cleaner exterior lines</figcaption>
-            </figure>
-            <figure className="overflow-hidden rounded-2xl border border-gray-800 bg-dark sm:col-span-2 lg:col-span-1">
-              <img src="/images/st+louis+arch+skyline.jpg" alt="St. Louis service area placeholder" className="h-56 w-full object-cover" />
-              <figcaption className="border-t border-gray-800 px-4 py-3 text-sm text-gray-400">St. Louis area service projects</figcaption>
-            </figure>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-dark py-16">
-        <div className="container mx-auto max-w-6xl px-4 sm:px-6">
-          <h2 className="text-3xl font-extrabold text-white sm:text-4xl">Our process</h2>
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {processSteps.map((step, index) => (
               <article key={step.title} className="rounded-2xl border border-gray-800 bg-darker p-6">
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Step {index + 1}</p>
@@ -307,6 +276,10 @@ export default function Windows() {
 
             <div className="rounded-3xl border border-gray-800 bg-dark p-8">
               <form className="space-y-5" onSubmit={handleSubmit}>
+                <p className="rounded-xl border border-primary/25 bg-primary/10 px-4 py-3 text-sm text-gray-200">
+                  We&apos;ll call or text within one business day with your quote. No spam. No pressure.
+                </p>
+
                 <div>
                   <label htmlFor="name" className="mb-2 block text-sm font-bold text-gray-300">Full Name *</label>
                   <input
@@ -365,16 +338,8 @@ export default function Windows() {
                 </div>
 
                 <div>
-                  <label htmlFor="message" className="mb-2 block text-sm font-bold text-gray-300">Project Details</label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    rows="4"
-                    value={formData.message}
-                    onChange={handleChange}
-                    className="w-full rounded-xl border border-gray-700 bg-darker px-4 py-3 text-white outline-none transition focus:border-primary"
-                    placeholder="Tell us about your current windows and goals."
-                  />
+                  <label htmlFor="message" className="mb-2 block text-sm font-bold text-gray-300">Project Details (Optional)</label>
+                  <textarea id="message" name="message" rows="3" className="w-full rounded-xl border border-gray-700 bg-darker px-4 py-3 text-white outline-none transition focus:border-primary" placeholder="Any specific concerns or goals?" onChange={handleChange} />
                 </div>
 
                 <button
@@ -382,9 +347,12 @@ export default function Windows() {
                   disabled={submitState.status === 'loading'}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 font-bold text-white transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {submitState.status === 'loading' ? 'Submitting...' : 'Get Free Estimate'}
+                  {submitState.status === 'loading' ? 'Submitting...' : 'Get My Free Window Quote'}
                   <ArrowRight className="h-5 w-5" />
                 </button>
+                <p className="text-xs leading-relaxed text-gray-500">
+                  By submitting, you agree to be contacted by Luitjens Exteriors at the number and email provided, including via autodialed calls/texts. Consent is not required for purchase.
+                </p>
 
                 {submitState.message && (
                   <p
@@ -427,7 +395,7 @@ export default function Windows() {
               onClick={scrollToForm}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 font-bold text-white transition hover:bg-primary-dark"
             >
-              Get Free Estimate
+              Get My Free Window Quote
               <ArrowRight className="h-5 w-5" />
             </button>
             <a
