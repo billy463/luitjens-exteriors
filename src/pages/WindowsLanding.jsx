@@ -111,6 +111,7 @@ export default function WindowsLanding() {
   const [submitState, setSubmitState] = useState({ status: 'idle', message: '' });
   const [logoFailures, setLogoFailures] = useState({});
   const [comparisonTarget, setComparisonTarget] = useState('bigBox');
+  const [showMobileStickyCta, setShowMobileStickyCta] = useState(false);
 
   useEffect(() => {
     const title = 'Window Replacement in St. Louis | Wincore, Simonton, Pella & Andersen | Luitjens Exteriors';
@@ -123,6 +124,13 @@ export default function WindowsLanding() {
     upsertMeta('property', 'og:description', description);
     upsertMeta('property', 'og:type', 'website');
     upsertMeta('property', 'og:url', `${window.location.origin}/windows-landing`);
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => setShowMobileStickyCta(window.scrollY > 140);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   const onSubmit = async event => {
@@ -489,7 +497,7 @@ export default function WindowsLanding() {
         </div>
       </section>
 
-      <div className="fixed bottom-0 left-0 right-0 z-40 flex gap-2 border-t border-gray-700 bg-dark p-2 md:hidden">
+      <div className={`fixed bottom-0 left-0 right-0 z-40 flex gap-2 border-t border-gray-700 bg-dark p-2 transition-all duration-300 md:hidden ${showMobileStickyCta ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-full opacity-0'}`}>
         <a href={PHONE_HREF} onClick={trackPhoneConversion} className="flex-1 rounded-lg border border-primary px-3 py-2.5 text-center text-sm font-semibold text-primary">Call</a>
         <a href="#windows-form" className="flex-1 rounded-lg bg-primary px-3 py-2.5 text-center text-sm font-semibold text-white">Get my estimate</a>
       </div>
