@@ -18,7 +18,7 @@ import { trackPhoneConversion } from './lib/googleAds';
 
 function AppShell() {
   const location = useLocation();
-  const isStandaloneLanding = location.pathname === '/windows-landing';
+  const isStandaloneLanding = location.pathname.startsWith('/windows-landing');
 
   return (
     <div className="flex flex-col min-h-screen bg-dark text-white font-sans">
@@ -31,7 +31,7 @@ function AppShell() {
           <Route path="/roofing" element={<Roofing />} />
           <Route path="/siding" element={<Siding />} />
           <Route path="/windows" element={<Windows />} />
-          <Route path="/windows-landing" element={<WindowsLanding />} />
+          <Route path="/windows-landing/*" element={<WindowsLanding />} />
           <Route path="/doors" element={<Doors />} />
           <Route path="/gutters" element={<Gutters />} />
           <Route path="/why-us" element={<WhyUs />} />
