@@ -178,8 +178,18 @@ export default function WindowsLanding() {
   return (
     <div className="w-full bg-dark text-gray-200 pb-24 md:pb-0">
       <header className="sticky top-0 z-40 border-b border-gray-800 bg-darker/95 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-6xl items-center px-4 md:h-16 md:px-6">
-          <a href="/" className="font-bold tracking-wide text-white">LUITJENS EXTERIORS</a>
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 md:h-16 md:px-6">
+          <a href="/" className="flex items-center">
+            <img
+              src="https://images.squarespace-cdn.com/content/v1/67c894550ca45b50d4350eb4/e11fb7cd-e691-4181-a329-40aea8c93872/Luitjens%2BExteriors%2BLogo.jpg?format=1500w"
+              alt="Luitjens Exteriors"
+              className="h-9 w-auto object-contain md:h-11"
+            />
+          </a>
+          <nav className="flex items-center gap-4 text-[11px] font-bold uppercase tracking-[0.12em] text-gray-200 md:gap-6 md:text-xs">
+            <a href="#why-different" className="transition-colors hover:text-primary">Why We're Different</a>
+            <a href="#reviews" className="transition-colors hover:text-primary">Reviews</a>
+          </nav>
         </div>
       </header>
 
@@ -289,7 +299,8 @@ export default function WindowsLanding() {
         </div>
       </section>
 
-      <section id="brands" className="border-y border-gray-800 bg-darker py-14 md:py-20">
+      <section id="why-different" className="border-y border-gray-800 bg-darker py-14 md:py-20">
+        <div id="brands" />
         <div className="mx-auto max-w-6xl px-4 md:px-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">The four-brand promise</p>
           <h2 className="mt-2 max-w-3xl text-3xl font-extrabold text-white md:text-4xl">Good, better, best, ultra-premium - all under one roof.</h2>
