@@ -17,19 +17,19 @@ const brandOptions = [
 const brandLogos = [
   {
     name: 'Wincore',
-    src: 'https://www.wincorewindows.com/wp-content/uploads/wincore_logo_footer_rev.svg',
+    src: '/images/brands/wincore.jfif',
   },
   {
     name: 'Simonton',
-    src: 'https://www.simonton.com/wp-content/uploads/2024/02/Simonton-logo-white.svg',
+    src: '/images/brands/simonton.jfif',
   },
   {
     name: 'Pella',
-    src: 'https://www.pella.com/content/dam/pella-dot-com/images/global/pella-logo-white.svg',
+    src: '/images/brands/pella.jfif',
   },
   {
     name: 'Andersen',
-    src: 'https://www.andersenwindows.com/-/media/Project/AndersenCorporation/AndersenWindows/AndersenWindows/images/brand-launch-2020/andersen_logo_tm_rectangle_rgb.svg?h=120&iar=0&w=520',
+    src: '/images/brands/anderson.jfif',
   },
 ];
 
