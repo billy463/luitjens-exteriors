@@ -215,8 +215,8 @@ export default function WindowsLanding() {
       }
 
       const elapsed = Date.now() - startedAt;
-      if (elapsed < 2500) {
-        await wait(2500 - elapsed);
+      if (elapsed < 15000) {
+        await wait(15000 - elapsed);
       }
 
       setStep(3);
@@ -228,8 +228,8 @@ export default function WindowsLanding() {
       setProgress(current => ({ ...current, countedWindows: true, matchedPricing: true, builtRanges: true }));
       setStatus({ type: 'idle', message: '' });
       const elapsed = Date.now() - startedAt;
-      if (elapsed < 2500) {
-        await wait(2500 - elapsed);
+      if (elapsed < 15000) {
+        await wait(15000 - elapsed);
       }
       setStep(3);
     }

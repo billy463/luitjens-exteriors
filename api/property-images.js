@@ -128,51 +128,41 @@ export default async function handler(req, res) {
   const encodedAddress = encodeURIComponent(address);
 
   const attempts = [];
-
-  const legacyEndpoints = [
-    `https://zillow.realtyapi.io/propimages?byaddress=${encodedAddress}`,
-    `https://zillow.realtyapi.io/property_images?byaddress=${encodedAddress}`,
+  const endpoints = [
+    {
+      url: `https://api.realtyapi.io/pro/byaddress?propertyaddress=${encodedAddress}`,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: 'application/json',
+      },
+    },
+    {
+      url: `https://zillow.realtyapi.io/propimages?byaddress=${encodedAddress}`,
+      headers: {
+        'x-realtyapi-key': apiKey,
+        Accept: 'application/json',
+      },
+    },
+    {
+      url: `https://zillow.realtyapi.io/property_images?byaddress=${encodedAddress}`,
+      headers: {
+        'x-realtyapi-key': apiKey,
+        Accept: 'application/json',
+      },
+    },
   ];
 
-  try {
-    const unified = await fetchJson(
-      `https://api.realtyapi.io/pro/byaddress?propertyaddress=${encodedAddress}`,
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          Accept: 'application/json',
-        },
-      },
-    );
+  let lastError = null;
 
-    const unifiedImages = collectImages(unified.payload);
-    attempts.push({
-      url: 'https://api.realtyapi.io/pro/byaddress',
-      status: unified.response.status,
-      imageCount: unifiedImages.length,
-    });
-
-    if (unified.response.ok && unifiedImages.length > 0) {
-      return res.status(200).json({
-        address,
-        images: unifiedImages,
-        imageCount: unifiedImages.length,
-        source: 'https://api.realtyapi.io/pro/byaddress',
-        attempts,
-      });
-    }
-
-    for (const url of legacyEndpoints) {
-      const { response, payload } = await fetchJson(url, {
-        headers: {
-          'x-realtyapi-key': apiKey,
-          Accept: 'application/json',
-        },
+  for (const endpoint of endpoints) {
+    try {
+      const { response, payload } = await fetchJson(endpoint.url, {
+        headers: endpoint.headers,
       });
 
       const images = collectImages(payload);
       attempts.push({
-        url,
+        url: endpoint.url,
         status: response.status,
         imageCount: images.length,
       });
@@ -182,21 +172,29 @@ export default async function handler(req, res) {
           address,
           images,
           imageCount: images.length,
-          source: url,
+          source: endpoint.url,
           attempts,
         });
       }
+    } catch (error) {
+      lastError = error;
+      attempts.push({
+        url: endpoint.url,
+        error: error.message,
+      });
     }
+  }
 
-    return res.status(404).json({
-      error: 'No property photos were found for this address.',
-      attempts,
-    });
-  } catch (error) {
+  if (lastError && attempts.every(item => item.error)) {
     return res.status(500).json({
       error: 'Unable to reach RealtyAPI.',
-      details: error.message,
+      details: lastError.message,
       attempts,
     });
   }
+
+  return res.status(404).json({
+    error: 'No property photos were found for this address.',
+    attempts,
+  });
 }
