@@ -31,14 +31,12 @@ const isLikelyPhoto = url => {
   if (definitelyNotPhoto) return false;
 
   if (IMAGE_EXTENSIONS.some(ext => lower.includes(ext))) return true;
+  if (lower.includes('photos.zillowstatic.com')) return true;
 
   return (
     lower.includes('image') ||
     lower.includes('photo') ||
-    lower.includes('photos') ||
-    lower.includes('hdp') ||
-    lower.includes('zillow') ||
-    lower.includes('listing')
+    lower.includes('photos')
   );
 };
 
@@ -73,15 +71,17 @@ const collectImages = input => {
     Object.entries(value).forEach(([key, current]) => {
       if (typeof current === 'string') {
         const lowerKey = key.toLowerCase();
-        if (
+        const normalized = normalizeImageUrl(current);
+        const keyLooksLikePhoto =
           lowerKey.includes('image') ||
           lowerKey.includes('photo') ||
-          lowerKey.includes('url') ||
           lowerKey.includes('src') ||
-          lowerKey.includes('cover')
-        ) {
-          const normalized = normalizeImageUrl(current);
-          if (normalized && isLikelyPhoto(normalized)) found.push(normalized);
+          lowerKey.includes('cover') ||
+          lowerKey.includes('thumbnail');
+        const urlLooksLikePhotoHost =
+          normalized && normalized.toLowerCase().includes('photos.zillowstatic.com');
+        if ((keyLooksLikePhoto || urlLooksLikePhotoHost) && normalized && isLikelyPhoto(normalized)) {
+          found.push(normalized);
         }
       } else {
         walk(current);
