@@ -292,7 +292,7 @@ export default function WindowsLanding() {
             <span className="eyebrow">St. Louis Homeowners</span>
             <h1>Lower your energy bills <span className="accent">with the right windows.</span></h1>
             <p className="hero-lead">
-              New energy-efficient windows can cut your home&apos;s indoor temperature swing by 2-5 degrees and save hundreds on utility bills. See what it costs for your house in 30 seconds.
+              New energy-efficient windows can cut your home&apos;s indoor temperature swing by 2-5 degrees and save hundreds on utility bills. See what it costs for your house in about 3 minutes.
             </p>
             <div className="trust-row">
               <div className="trust-item"><div className="trust-dot" />10+ Years in St. Louis</div>
@@ -315,7 +315,7 @@ export default function WindowsLanding() {
 
           <section className="primary-action-block">
             <div className="action-kicker"><span className="live-dot" /><span className="live-text">Live Pricing Tool</span></div>
-            <h2 className="action-title">See Your Pricing in 30 Seconds.</h2>
+            <h2 className="action-title">See Your Pricing in About 3 Minutes.</h2>
             <p className="action-subtitle">Type your address. We&apos;ll find your home, count your windows, and <strong>text you real price ranges</strong> - no $189 bait, no sales calls.</p>
             <form onSubmit={handleAddressStart}>
               <div className="form-group">
@@ -333,7 +333,7 @@ export default function WindowsLanding() {
               <button className="cta-btn" type="submit" disabled={status.type === 'loading'}>
                 {status.type === 'loading' ? 'Finding Home...' : 'Find My Home'} <ArrowRight size={16} />
               </button>
-              <p className="cta-fineprint">Free. No credit card. Takes 30 seconds.</p>
+              <p className="cta-fineprint">Free, no-obligation estimate. Takes about 3 minutes.</p>
               {status.type === 'error' ? <p className="status status-error">{status.message}</p> : null}
             </form>
           </section>
@@ -347,7 +347,7 @@ export default function WindowsLanding() {
               <img src={previewImage} alt="Property preview" className="property-preview-image" />
             </div>
             <h2 className="analyzing-title">Analyzing your home...</h2>
-            <p className="analyzing-sub">This takes about 30 seconds.</p>
+            <p className="analyzing-sub">This takes about 3 minutes.</p>
             <div className="progress-list">
               <div className={`progress-item ${progress.foundProperty ? 'done' : 'active'}`}><div className="progress-check" />Found your property</div>
               <div className={`progress-item ${progress.pulledImages ? 'done' : ''}`}><div className="progress-check" />Pulled listing photos</div>
