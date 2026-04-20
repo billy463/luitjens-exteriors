@@ -45,6 +45,19 @@ back for a total around 10."
 Be direct. State what you saw. Name the total. Do not apologize for
 limitations — just name them.`;
 
+const PROPERTY_ONLY_SYSTEM_PROMPT = `You are estimating residential window counts using property metadata only.
+No listing photos are available, so provide a practical starting estimate from:
+- living area (sqft)
+- year built
+- home type
+- bedrooms and bathrooms
+- stories and lot size if provided
+
+Return counts by type using realistic ranges for U.S. single-family homes and similar properties.
+This is only a best guess the homeowner will edit before requesting their quote.
+Write a short first-person narrative (3-4 sentences, ~300 characters) that says you used property info (not photos),
+states the estimated total, and reminds them to adjust counts as needed.`;
+
 const OUTPUT_SCHEMA = {
   type: 'json_schema',
   schema: {
@@ -95,7 +108,11 @@ const buildPropertyContextText = propertyData => {
   const lines = [];
   if (propertyData?.livingArea != null) lines.push(`Living area: ${propertyData.livingArea} sqft`);
   if (propertyData?.yearBuilt != null) lines.push(`Year built: ${propertyData.yearBuilt}`);
+  if (propertyData?.bedrooms != null) lines.push(`Bedrooms: ${propertyData.bedrooms}`);
+  if (propertyData?.bathrooms != null) lines.push(`Bathrooms: ${propertyData.bathrooms}`);
   if (propertyData?.homeType) lines.push(`Home type: ${propertyData.homeType}`);
+  if (propertyData?.stories != null) lines.push(`Stories: ${propertyData.stories}`);
+  if (propertyData?.lotSize != null) lines.push(`Lot size: ${propertyData.lotSize}`);
 
   if (lines.length === 0) {
     return 'Count the windows and return your structured response.';
@@ -103,6 +120,19 @@ const buildPropertyContextText = propertyData => {
 
   return `Property context:\n\n${lines.join('\n')}\n\nCount the windows and return your structured response.`;
 };
+
+const hasUsablePropertyData = propertyData =>
+  !!(
+    propertyData &&
+    typeof propertyData === 'object' &&
+    (propertyData.livingArea != null ||
+      propertyData.yearBuilt != null ||
+      propertyData.bedrooms != null ||
+      propertyData.bathrooms != null ||
+      propertyData.homeType ||
+      propertyData.stories != null ||
+      propertyData.lotSize != null)
+  );
 
 const extractStructuredJson = content => {
   if (!Array.isArray(content)) return null;
@@ -140,72 +170,82 @@ export default async function handler(req, res) {
   const images = inputImages.slice(0, 8);
   const propertyData = req.body?.propertyData && typeof req.body.propertyData === 'object' ? req.body.propertyData : null;
 
-  if (images.length === 0) {
-    return res.status(200).json(MANUAL_FALLBACK);
-  }
+  const canDoPropertyOnlyEstimate = images.length === 0 && hasUsablePropertyData(propertyData);
 
   const imageBlocks = [];
 
-  for (const imageUrl of images) {
-    try {
-      const response = await timeoutFetch(
-        imageUrl,
-        {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; LuitjensBot/1.0)',
+  if (!canDoPropertyOnlyEstimate) {
+    for (const imageUrl of images) {
+      try {
+        const response = await timeoutFetch(
+          imageUrl,
+          {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (compatible; LuitjensBot/1.0)',
+            },
           },
-        },
-        10000,
-      );
+          10000,
+        );
 
-      if (!response.ok) {
-        console.error('[window-count] image fetch non-2xx', { imageUrl, status: response.status });
-        continue;
+        if (!response.ok) {
+          console.error('[window-count] image fetch non-2xx', { imageUrl, status: response.status });
+          continue;
+        }
+
+        const mediaType = normalizeMediaType(response.headers.get('content-type'));
+        const bytes = await response.arrayBuffer();
+        const base64 = Buffer.from(bytes).toString('base64');
+
+        imageBlocks.push({
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: mediaType,
+            data: base64,
+          },
+        });
+      } catch (error) {
+        console.error('[window-count] image fetch failed', {
+          imageUrl,
+          error: error?.message,
+        });
       }
-
-      const mediaType = normalizeMediaType(response.headers.get('content-type'));
-      const bytes = await response.arrayBuffer();
-      const base64 = Buffer.from(bytes).toString('base64');
-
-      imageBlocks.push({
-        type: 'image',
-        source: {
-          type: 'base64',
-          media_type: mediaType,
-          data: base64,
-        },
-      });
-    } catch (error) {
-      console.error('[window-count] image fetch failed', {
-        imageUrl,
-        error: error?.message,
-      });
     }
   }
 
-  if (imageBlocks.length === 0) {
+  if (imageBlocks.length === 0 && !canDoPropertyOnlyEstimate) {
     return res.status(200).json(MANUAL_FALLBACK);
   }
 
   const anthropic = new Anthropic({ apiKey: anthropicKey });
-  const userContent = [
-    ...imageBlocks,
-    {
-      type: 'text',
-      text: buildPropertyContextText(propertyData),
-    },
-  ];
+  const userContent = canDoPropertyOnlyEstimate
+    ? [
+        {
+          type: 'text',
+          text: `${buildPropertyContextText(
+            propertyData,
+          )}\n\nNo listing photos are available. Estimate from property info only and return structured output.`,
+        },
+      ]
+    : [
+        ...imageBlocks,
+        {
+          type: 'text',
+          text: buildPropertyContextText(propertyData),
+        },
+      ];
 
   try {
     console.log('[window-count] model request', {
       model: MODEL_NAME,
       imagesSent: imageBlocks.length,
+      mode: canDoPropertyOnlyEstimate ? 'property-only' : 'photo+property',
     });
 
     const response = await anthropic.messages.create({
       model: MODEL_NAME,
       max_tokens: 1024,
-      system: SYSTEM_PROMPT,
+      system: canDoPropertyOnlyEstimate ? PROPERTY_ONLY_SYSTEM_PROMPT : SYSTEM_PROMPT,
       messages: [
         {
           role: 'user',

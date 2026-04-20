@@ -95,6 +95,8 @@ const getPropertyData = property => ({
   bedrooms: Number(property?.bedrooms) || null,
   bathrooms: Number(property?.bathrooms) || Number(property?.bathroomsFull) || null,
   homeType: property?.homeType || property?.propertyType || null,
+  stories: Number(property?.resoFacts?.stories || property?.stories) || null,
+  lotSize: Number(property?.lotSize || property?.lotAreaValue) || null,
 });
 
 export default async function handler(req, res) {
