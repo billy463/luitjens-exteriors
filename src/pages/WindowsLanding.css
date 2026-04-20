@@ -24,7 +24,7 @@
 }
 
 .windows-landing-v2 .screen {
-  border-bottom: 8px solid #000;
+  border-bottom: none;
 }
 
 .windows-landing-v2 .screen-label {
@@ -959,6 +959,18 @@
 
 .windows-landing-v2 .cta-link {
   width: 100%;
+}
+
+.windows-landing-v2 .landing-copyright {
+  margin: 10px 0 6px;
+  text-align: center;
+  font-size: 11px;
+  color: rgba(168, 179, 192, 0.72);
+}
+
+.windows-landing-v2 .landing-legal-link {
+  color: rgba(196, 166, 107, 0.92);
+  text-decoration: none;
 }
 
 @keyframes wl-pulse {

@@ -614,6 +614,13 @@ export default function WindowsLanding() {
           </section>
         </div>
       ) : null}
+
+      <div className="landing-copyright">
+        © 2026 Luitjens Exteriors. All rights reserved.{' '}
+        <a href="#" className="landing-legal-link">Privacy Policy</a>
+        {' '}·{' '}
+        <a href="#" className="landing-legal-link">Terms of Service</a>
+      </div>
     </div>
   );
 }

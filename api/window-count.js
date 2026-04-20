@@ -273,10 +273,28 @@ export default async function handler(req, res) {
 
     const summedTotal = Object.values(normalizedCounts).reduce((sum, val) => sum + val, 0);
 
+    let narrativeText = `${parsed?.narrative || ''}`.trim();
+    if (!narrativeText) {
+      narrativeText = MANUAL_FALLBACK.narrative;
+    }
+
+    if (canDoPropertyOnlyEstimate) {
+      const fallbackLead = "We couldn't find enough listing photos of your home, so I estimated from your property details.";
+      const lowerNarrative = narrativeText.toLowerCase();
+      const alreadyMentionsPhotoGap =
+        lowerNarrative.includes("couldn't find enough") ||
+        lowerNarrative.includes('no listing photos') ||
+        lowerNarrative.includes('property info');
+
+      if (!alreadyMentionsPhotoGap) {
+        narrativeText = `${fallbackLead} ${narrativeText}`;
+      }
+    }
+
     return res.status(200).json({
       counts: normalizedCounts,
       total: toNonNegativeInt(parsed?.total) || summedTotal,
-      narrative: `${parsed?.narrative || ''}`.trim(),
+      narrative: narrativeText,
       facesObserved: Array.isArray(parsed?.faces_observed) ? parsed.faces_observed : [],
       imagesAnalyzed: imageBlocks.length,
       model: MODEL_NAME,
