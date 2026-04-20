@@ -58,6 +58,7 @@ export default function WindowsLanding() {
   const [analysisConfidence, setAnalysisConfidence] = useState('low');
   const [analysisNotes, setAnalysisNotes] = useState([]);
   const [manualMode, setManualMode] = useState(false);
+  const [analysisPulse, setAnalysisPulse] = useState(0);
   const addressInputRef = useRef(null);
 
   const totalWindows = useMemo(
@@ -96,6 +97,14 @@ export default function WindowsLanding() {
     setMeta('property', 'og:description', description);
     setMeta('property', 'og:type', 'website');
   }, []);
+
+  useEffect(() => {
+    if (step !== 2) return undefined;
+    const intervalId = window.setInterval(() => {
+      setAnalysisPulse(current => (current + 1) % 5);
+    }, 1200);
+    return () => window.clearInterval(intervalId);
+  }, [step]);
 
   useEffect(() => {
     const mapsKey =
@@ -349,11 +358,18 @@ export default function WindowsLanding() {
             <h2 className="analyzing-title">Analyzing your home...</h2>
             <p className="analyzing-sub">This takes about 3 minutes.</p>
             <div className="progress-list">
-              <div className={`progress-item ${progress.foundProperty ? 'done' : 'active'}`}><div className="progress-check" />Found your property</div>
-              <div className={`progress-item ${progress.pulledImages ? 'done' : ''}`}><div className="progress-check" />Pulled listing photos</div>
-              <div className={`progress-item ${progress.countedWindows ? 'done' : ''}`}><div className="progress-check" />Counting windows by type...</div>
-              <div className={`progress-item ${progress.matchedPricing ? 'done' : ''}`}><div className="progress-check" />Matching St. Louis price data</div>
-              <div className={`progress-item ${progress.builtRanges ? 'done' : ''}`}><div className="progress-check" />Building your ranges</div>
+              {[
+                { label: 'Found your property', done: progress.foundProperty },
+                { label: 'Pulled listing photos', done: progress.pulledImages },
+                { label: 'Counting windows by type...', done: progress.countedWindows },
+                { label: 'Matching St. Louis price data', done: progress.matchedPricing },
+                { label: 'Building your ranges', done: progress.builtRanges },
+              ].map((item, idx) => (
+                <div key={item.label} className={`progress-item ${item.done ? 'done' : ''} ${analysisPulse === idx ? 'active' : ''}`}>
+                  <div className="progress-check" />
+                  <span>{item.label}</span>
+                </div>
+              ))}
             </div>
           </section>
         </div>

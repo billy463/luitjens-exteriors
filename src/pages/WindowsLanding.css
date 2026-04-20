@@ -573,6 +573,10 @@
   animation: wl-spin 0.8s linear infinite;
 }
 
+.windows-landing-v2 .progress-item.active span {
+  color: #f4f1ec;
+}
+
 .windows-landing-v2 .breakdown-kicker,
 .windows-landing-v2 .preview-header {
   font-size: 11px;
