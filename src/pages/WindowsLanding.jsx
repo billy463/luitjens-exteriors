@@ -317,7 +317,7 @@ export default function WindowsLanding() {
     { label: 'Found your property', done: progress.foundProperty },
     { label: 'Pulled listing photos', done: progress.pulledImages },
     { label: 'Counting windows by type...', done: progress.countedWindows },
-    { label: 'Matching St. Louis price data', done: progress.matchedPricing },
+    { label: 'Building your all-in estimate range', done: progress.matchedPricing },
     { label: 'Building your ranges', done: progress.builtRanges },
   ];
 
