@@ -318,7 +318,7 @@ export default function WindowsLanding() {
     { label: 'Pulled listing photos', done: progress.pulledImages },
     { label: 'Counting windows by type...', done: progress.countedWindows },
     { label: 'Building your all-in estimate range', done: progress.matchedPricing },
-    { label: 'Building your ranges', done: progress.builtRanges },
+    { label: 'Preparing your editable window breakdown', done: progress.builtRanges },
   ];
 
   return (
