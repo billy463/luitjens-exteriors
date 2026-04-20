@@ -21,22 +21,61 @@ const perWindowRange = {
   andersen: [1400, 1900],
 };
 
+const emptyProgress = {
+  foundProperty: false,
+  pulledImages: false,
+  countedWindows: false,
+  matchedPricing: false,
+  builtRanges: false,
+};
+
 function formatRange([low, high]) {
   return `$${low.toLocaleString()} - $${high.toLocaleString()}`;
 }
 
+function mapModelCountsToUi(counts = {}) {
+  const get = key => Number(counts?.[key] || 0);
+  return {
+    doubleHung: get('double-hung'),
+    casement: get('casement') + get('awning'),
+    picture: get('picture') + get('sliding'),
+    specialty: get('bay-bow') + get('garden') + get('egress'),
+  };
+}
+
 export default function WindowsLanding() {
+  const [step, setStep] = useState(1);
   const [address, setAddress] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [counts, setCounts] = useState(initialCounts);
   const [status, setStatus] = useState({ type: 'idle', message: '' });
+  const [progress, setProgress] = useState(emptyProgress);
+  const [previewImage, setPreviewImage] = useState('/images/windows-landing-hero-house.jpg');
+  const [images, setImages] = useState([]);
+  const [analysisConfidence, setAnalysisConfidence] = useState('low');
+  const [analysisNotes, setAnalysisNotes] = useState([]);
+  const [manualMode, setManualMode] = useState(false);
+
+  const totalWindows = useMemo(
+    () => Object.values(counts).reduce((sum, count) => sum + count, 0),
+    [counts],
+  );
+
+  const priceRanges = useMemo(
+    () => ({
+      wincore: [perWindowRange.wincore[0] * totalWindows, perWindowRange.wincore[1] * totalWindows],
+      simonton: [perWindowRange.simonton[0] * totalWindows, perWindowRange.simonton[1] * totalWindows],
+      pella: [perWindowRange.pella[0] * totalWindows, perWindowRange.pella[1] * totalWindows],
+      andersen: [perWindowRange.andersen[0] * totalWindows, perWindowRange.andersen[1] * totalWindows],
+    }),
+    [totalWindows],
+  );
 
   useEffect(() => {
     const title = 'Luitjens Exteriors - See Your Window Pricing in 30 Seconds';
     const description =
       'Lower your energy bills with the right windows. Enter your address and get your St. Louis pricing ranges by text.';
-
     document.title = title;
 
     const setMeta = (attr, key, content) => {
@@ -55,21 +94,6 @@ export default function WindowsLanding() {
     setMeta('property', 'og:type', 'website');
   }, []);
 
-  const totalWindows = useMemo(
-    () => Object.values(counts).reduce((sum, count) => sum + count, 0),
-    [counts],
-  );
-
-  const priceRanges = useMemo(
-    () => ({
-      wincore: [perWindowRange.wincore[0] * totalWindows, perWindowRange.wincore[1] * totalWindows],
-      simonton: [perWindowRange.simonton[0] * totalWindows, perWindowRange.simonton[1] * totalWindows],
-      pella: [perWindowRange.pella[0] * totalWindows, perWindowRange.pella[1] * totalWindows],
-      andersen: [perWindowRange.andersen[0] * totalWindows, perWindowRange.andersen[1] * totalWindows],
-    }),
-    [totalWindows],
-  );
-
   const updateCount = (key, delta) => {
     setCounts(current => ({
       ...current,
@@ -77,17 +101,72 @@ export default function WindowsLanding() {
     }));
   };
 
-  const handleAddressStart = event => {
+  const handleAddressStart = async event => {
     event.preventDefault();
     if (!address.trim()) {
       setStatus({ type: 'error', message: 'Please enter your street address to continue.' });
       return;
     }
-    setStatus({ type: 'idle', message: '' });
-    document.getElementById('analyzing-screen')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    setStatus({ type: 'loading', message: '' });
+    setProgress(emptyProgress);
+    setManualMode(false);
+    setAnalysisConfidence('low');
+    setAnalysisNotes([]);
+    setStep(2);
+
+    try {
+      setProgress(current => ({ ...current, foundProperty: true }));
+
+      const imageResponse = await fetch(`/api/property-images?address=${encodeURIComponent(address.trim())}`);
+      const imagePayload = await imageResponse.json().catch(() => ({}));
+      if (!imageResponse.ok) {
+        throw new Error(imagePayload?.error || 'Could not load property photos for that address.');
+      }
+
+      const availableImages = Array.isArray(imagePayload.images) ? imagePayload.images.filter(Boolean) : [];
+      setImages(availableImages);
+      if (availableImages[0]) {
+        setPreviewImage(availableImages[0]);
+      }
+      setProgress(current => ({ ...current, pulledImages: true }));
+
+      const countResponse = await fetch('/api/window-count', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ images: availableImages }),
+      });
+      const countPayload = await countResponse.json().catch(() => ({}));
+      if (!countResponse.ok) {
+        throw new Error(countPayload?.error || 'Could not estimate window counts.');
+      }
+
+      setProgress(current => ({ ...current, countedWindows: true, matchedPricing: true, builtRanges: true }));
+      const mappedCounts = mapModelCountsToUi(countPayload.counts);
+      const mappedTotal = Object.values(mappedCounts).reduce((sum, val) => sum + val, 0);
+      const confidence = `${countPayload?.confidence || 'low'}`.toLowerCase();
+      setAnalysisConfidence(confidence);
+      setAnalysisNotes(Array.isArray(countPayload?.notes) ? countPayload.notes.slice(0, 3) : []);
+      if (mappedTotal > 0) {
+        setCounts(mappedCounts);
+      }
+      if (!mappedTotal || confidence === 'low') {
+        setManualMode(true);
+      }
+
+      setStep(3);
+      setStatus({ type: 'idle', message: '' });
+    } catch (error) {
+      setManualMode(true);
+      setAnalysisConfidence('low');
+      setAnalysisNotes(['We could not confidently detect all window types from the listing photos.']);
+      setProgress(current => ({ ...current, countedWindows: true, matchedPricing: true, builtRanges: true }));
+      setStatus({ type: 'idle', message: '' });
+      setStep(3);
+    }
   };
 
-  const handleSubmit = async event => {
+  const handleLeadSubmit = async event => {
     event.preventDefault();
 
     if (!address.trim() || !name.trim() || !phone.trim()) {
@@ -108,7 +187,7 @@ export default function WindowsLanding() {
           address: address.trim(),
           phone: phone.trim(),
           source: '/windows-landing sms funnel',
-          details: `Window count estimate: ${totalWindows} (DH:${counts.doubleHung}, Casement:${counts.casement}, Picture:${counts.picture}, Specialty:${counts.specialty})`,
+          details: `Window count estimate: ${totalWindows} (DH:${counts.doubleHung}, Casement:${counts.casement}, Picture:${counts.picture}, Specialty:${counts.specialty}), images analyzed: ${images.length}`,
         }),
       });
 
@@ -119,7 +198,7 @@ export default function WindowsLanding() {
       trackMetaLead({ content_name: 'Windows landing SMS lead', value: 0, currency: 'USD' });
 
       setStatus({ type: 'success', message: "Success - we're texting your range now." });
-      document.getElementById('confirmation-screen')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setStep(5);
     } catch (error) {
       setStatus({ type: 'error', message: error.message || 'Submission failed. Please call us now.' });
     }
@@ -127,274 +206,234 @@ export default function WindowsLanding() {
 
   return (
     <div className="windows-landing-v2">
-      <div className="screen">
-        <div className="screen-label">Screen 1 - Landing Page (from Facebook ad)</div>
-
-        <header className="header">
-          <a className="logo" href="/">
-            <img
-              src="https://images.squarespace-cdn.com/content/v1/67c894550ca45b50d4350eb4/e11fb7cd-e691-4181-a329-40aea8c93872/Luitjens%2BExteriors%2BLogo.jpg?format=1500w"
-              alt="Luitjens Exteriors"
-              className="logo-image"
-            />
-          </a>
-          <a
-            href={PHONE_HREF}
-            onClick={trackPhoneConversion}
-            className="phone-link"
-          >
-            <Phone />
-            Call
-          </a>
-        </header>
-
-        <section className="hero">
-          <span className="eyebrow">St. Louis Homeowners</span>
-          <h1>
-            Lower your energy bills <span className="accent">with the right windows.</span>
-          </h1>
-          <p className="hero-lead">
-            New energy-efficient windows can cut your home&apos;s indoor temperature swing by 2-5 degrees and save hundreds on utility bills. See what it costs for your house in 30 seconds.
-          </p>
-          <div className="trust-row">
-            <div className="trust-item"><div className="trust-dot" />10+ Years in St. Louis</div>
-            <div className="trust-item"><div className="trust-dot" />Family-Owned</div>
-            <div className="trust-item"><div className="trust-dot" />Licensed & Insured</div>
-            <div className="trust-item"><div className="trust-dot" />BBB A-Rated</div>
-          </div>
-        </section>
-
-        <div className="owner-card">
-          <div className="owner-avatar">A+M</div>
-          <div className="owner-info">
-            <div className="owner-role">Who You&apos;re Working With</div>
-            <div className="owner-names">Alexis &amp; Michael Luitjens</div>
-            <div className="owner-quote">&quot;Michael is on every install. I answer every text. That&apos;s the whole company and that&apos;s on purpose.&quot;</div>
-          </div>
-        </div>
-
-        <div className="review-card">
-          <div className="review-header">
-            <div className="review-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
-            <div className="review-source">Google</div>
-          </div>
-          <p className="review-quote">Got our price range texted in under 5 minutes. Michael showed up for the install himself - the actual owner.</p>
-          <p className="review-attr"><strong>Dana R.</strong> - Kirkwood, MO</p>
-        </div>
-
-        <div className="activity-ticker">
-          <div className="activity-pulse" />
-          <div><strong>Just now:</strong> Sarah in Des Peres received her pricing ranges.</div>
-        </div>
-
-        <div className="trust-strip">
-          <div className="trust-stat">
-            <div className="trust-stat-num">840+</div>
-            <div className="trust-stat-label">Windows installed &apos;24</div>
-          </div>
-          <div className="trust-stat">
-            <div className="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
-            <div className="trust-stat-num">4.9</div>
-            <div className="trust-stat-label">Google rating</div>
-          </div>
-          <div className="trust-stat">
-            <div className="trust-stat-num">&lt; 5 min</div>
-            <div className="trust-stat-label">Avg. text response</div>
-          </div>
-        </div>
-
-        <div className="cert-row">
-          <div className="cert-item"><div className="cert-item-label">BBB</div><div className="cert-item-sub">A-Rated</div></div>
-          <div className="cert-item"><div className="cert-item-label">EnergyStar</div><div className="cert-item-sub">Partner</div></div>
-          <div className="cert-item"><div className="cert-item-label">Licensed</div><div className="cert-item-sub">MO &amp; IL</div></div>
-        </div>
-
-        <section className="primary-action-block">
-          <div className="action-kicker">
-            <span className="live-dot" />
-            <span className="live-text">Live Pricing Tool</span>
-          </div>
-          <h2 className="action-title">See Your Pricing in 30 Seconds.</h2>
-          <p className="action-subtitle">
-            Type your address. We&apos;ll find your home, count your windows, and <strong>text you real price ranges</strong> - no $189 bait, no sales calls.
-          </p>
-
-          <form onSubmit={handleAddressStart}>
-            <div className="form-group">
-              <label className="form-label">Street Address</label>
-              <input
-                type="text"
-                value={address}
-                onChange={event => setAddress(event.target.value)}
-                className="form-input"
-                placeholder="1234 Forsyth Blvd, St. Louis, MO"
+      {step === 1 ? (
+        <div className="screen">
+          <header className="header">
+            <a className="logo" href="/">
+              <img
+                src="https://images.squarespace-cdn.com/content/v1/67c894550ca45b50d4350eb4/e11fb7cd-e691-4181-a329-40aea8c93872/Luitjens%2BExteriors%2BLogo.jpg?format=1500w"
+                alt="Luitjens Exteriors"
+                className="logo-image"
               />
+            </a>
+            <a href={PHONE_HREF} onClick={trackPhoneConversion} className="phone-link"><Phone />Call</a>
+          </header>
+
+          <section className="hero">
+            <span className="eyebrow">St. Louis Homeowners</span>
+            <h1>Lower your energy bills <span className="accent">with the right windows.</span></h1>
+            <p className="hero-lead">
+              New energy-efficient windows can cut your home&apos;s indoor temperature swing by 2-5 degrees and save hundreds on utility bills. See what it costs for your house in 30 seconds.
+            </p>
+            <div className="trust-row">
+              <div className="trust-item"><div className="trust-dot" />10+ Years in St. Louis</div>
+              <div className="trust-item"><div className="trust-dot" />Family-Owned</div>
+              <div className="trust-item"><div className="trust-dot" />Licensed &amp; Insured</div>
+              <div className="trust-item"><div className="trust-dot" />BBB A-Rated</div>
             </div>
-            <button className="cta-btn" type="submit">
-              Find My Home <ArrowRight size={16} />
+          </section>
+
+          <div className="owner-card">
+            <div className="owner-avatar">A+M</div>
+            <div className="owner-info">
+              <div className="owner-role">Who You&apos;re Working With</div>
+              <div className="owner-names">Alexis &amp; Michael Luitjens</div>
+              <div className="owner-quote">&quot;Michael is on every install. I answer every text. That&apos;s the whole company and that&apos;s on purpose.&quot;</div>
+            </div>
+          </div>
+
+          <section className="primary-action-block">
+            <div className="action-kicker"><span className="live-dot" /><span className="live-text">Live Pricing Tool</span></div>
+            <h2 className="action-title">See Your Pricing in 30 Seconds.</h2>
+            <p className="action-subtitle">Type your address. We&apos;ll find your home, count your windows, and <strong>text you real price ranges</strong> - no $189 bait, no sales calls.</p>
+            <form onSubmit={handleAddressStart}>
+              <div className="form-group">
+                <label className="form-label">Street Address</label>
+                <input type="text" className="form-input" placeholder="1234 Forsyth Blvd, St. Louis, MO" value={address} onChange={event => setAddress(event.target.value)} />
+              </div>
+              <button className="cta-btn" type="submit" disabled={status.type === 'loading'}>
+                {status.type === 'loading' ? 'Finding Home...' : 'Find My Home'} <ArrowRight size={16} />
+              </button>
+              <p className="cta-fineprint">Free. No credit card. Takes 30 seconds.</p>
+              {status.type === 'error' ? <p className="status status-error">{status.message}</p> : null}
+            </form>
+          </section>
+        </div>
+      ) : null}
+
+      {step === 2 ? (
+        <div className="screen">
+          <section className="analyzing-screen">
+            <div className="house-preview">
+              <img src={previewImage} alt="Property preview" className="property-preview-image" />
+            </div>
+            <h2 className="analyzing-title">Analyzing your home...</h2>
+            <p className="analyzing-sub">This takes about 30 seconds.</p>
+            <div className="progress-list">
+              <div className={`progress-item ${progress.foundProperty ? 'done' : 'active'}`}><div className="progress-check" />Found your property</div>
+              <div className={`progress-item ${progress.pulledImages ? 'done' : ''}`}><div className="progress-check" />Pulled listing photos</div>
+              <div className={`progress-item ${progress.countedWindows ? 'done' : ''}`}><div className="progress-check" />Counting windows by type...</div>
+              <div className={`progress-item ${progress.matchedPricing ? 'done' : ''}`}><div className="progress-check" />Matching St. Louis price data</div>
+              <div className={`progress-item ${progress.builtRanges ? 'done' : ''}`}><div className="progress-check" />Building your ranges</div>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {step === 3 ? (
+        <div className="screen">
+          <section className="breakdown-screen">
+            <div className="breakdown-header-row">
+              <div className="breakdown-kicker">Step 2 of 3</div>
+              <h2 className="breakdown-title">Here&apos;s what we found. Look right?</h2>
+              <p className="breakdown-sub">Tap + or - to correct anything we missed. Back-side windows are the most common miss.</p>
+              <div className="address-chip"><MapPin size={14} />{address.trim() || '1234 Forsyth Blvd'}</div>
+              <div className={`confidence-chip confidence-${analysisConfidence}`}>
+                Confidence: {analysisConfidence.toUpperCase()}
+              </div>
+              {manualMode ? (
+                <p className="manual-mode-note">
+                  We need your help to finish this accurately. Please adjust the window counts below before continuing.
+                </p>
+              ) : null}
+              {analysisNotes.length ? (
+                <ul className="analysis-notes">
+                  {analysisNotes.map(note => (
+                    <li key={note}>{note}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+
+            <div className="window-list">
+              <div className="window-row">
+                <div className="window-type">Double-hung<span className="window-type-hint">Slides up &amp; down</span></div>
+                <div className="counter">
+                  <button type="button" className="counter-btn" onClick={() => updateCount('doubleHung', -1)}><Minus size={14} /></button>
+                  <span className="counter-val">{counts.doubleHung}</span>
+                  <button type="button" className="counter-btn" onClick={() => updateCount('doubleHung', 1)}><Plus size={14} /></button>
+                </div>
+              </div>
+              <div className="window-row">
+                <div className="window-type">Casement<span className="window-type-hint">Cranks outward</span></div>
+                <div className="counter">
+                  <button type="button" className="counter-btn" onClick={() => updateCount('casement', -1)}><Minus size={14} /></button>
+                  <span className="counter-val">{counts.casement}</span>
+                  <button type="button" className="counter-btn" onClick={() => updateCount('casement', 1)}><Plus size={14} /></button>
+                </div>
+              </div>
+              <div className="window-row">
+                <div className="window-type">Picture / fixed<span className="window-type-hint">Large, does not open</span></div>
+                <div className="counter">
+                  <button type="button" className="counter-btn" onClick={() => updateCount('picture', -1)}><Minus size={14} /></button>
+                  <span className="counter-val">{counts.picture}</span>
+                  <button type="button" className="counter-btn" onClick={() => updateCount('picture', 1)}><Plus size={14} /></button>
+                </div>
+              </div>
+              <div className="window-row">
+                <div className="window-type">Specialty<span className="window-type-hint">Arched, bay, custom</span></div>
+                <div className="counter">
+                  <button type="button" className="counter-btn" onClick={() => updateCount('specialty', -1)}><Minus size={14} /></button>
+                  <span className="counter-val">{counts.specialty}</span>
+                  <button type="button" className="counter-btn" onClick={() => updateCount('specialty', 1)}><Plus size={14} /></button>
+                </div>
+              </div>
+            </div>
+            <div className="total-bar">
+              <span className="total-label">Total Windows</span>
+              <span className="total-count">{totalWindows}</span>
+            </div>
+            <button type="button" className="cta-btn cta-link" onClick={() => setStep(4)}>
+              Looks Right - Continue <ArrowRight size={16} />
             </button>
-          </form>
+            <p className="cta-fineprint">Still no phone number needed. One more step.</p>
+          </section>
+        </div>
+      ) : null}
 
-          <p className="cta-fineprint">Free. No credit card. Takes 30 seconds.</p>
-        </section>
-      </div>
-
-      <div className="annotation"><strong>What the customer gives up here</strong>Just their address. No phone, no name yet. Low-commitment first step.</div>
-
-      <div className="screen" id="analyzing-screen">
-        <div className="screen-label">Screen 2 - Analyzing your home...</div>
-        <section className="analyzing-screen">
-          <div className="house-preview"><div className="house-icon">🏠</div></div>
-          <h2 className="analyzing-title">Analyzing your home...</h2>
-          <p className="analyzing-sub">This takes about 30 seconds.</p>
-          <div className="progress-list">
-            <div className="progress-item done"><div className="progress-check" />Found your property</div>
-            <div className="progress-item done"><div className="progress-check" />Pulled satellite imagery</div>
-            <div className="progress-item active"><div className="progress-check" />Counting windows by type...</div>
-            <div className="progress-item"><div className="progress-check" />Matching St. Louis price data</div>
-            <div className="progress-item"><div className="progress-check" />Building your ranges</div>
-          </div>
-        </section>
-      </div>
-
-      <div className="annotation"><strong>Why this screen matters</strong>The wait becomes an experience. Customer sees the system actually doing work, not just a spinner.</div>
-
-      <div className="screen">
-        <div className="screen-label">Screen 3 - Window Breakdown (editable)</div>
-        <section className="breakdown-screen">
-          <div className="breakdown-header-row">
-            <div className="breakdown-kicker">Step 2 of 3</div>
-            <h2 className="breakdown-title">Here&apos;s what we found. Look right?</h2>
-            <p className="breakdown-sub">Tap + or - to correct anything we missed. Back-side windows are the most common miss.</p>
-            <div className="address-chip"><MapPin size={14} />{address.trim() || '1234 Forsyth Blvd'}</div>
-          </div>
-
-          <div className="window-list">
-            <div className="window-row">
-              <div className="window-type">Double-hung<span className="window-type-hint">Slides up & down</span></div>
-              <div className="counter">
-                <button type="button" className="counter-btn" onClick={() => updateCount('doubleHung', -1)}><Minus size={14} /></button>
-                <span className="counter-val">{counts.doubleHung}</span>
-                <button type="button" className="counter-btn" onClick={() => updateCount('doubleHung', 1)}><Plus size={14} /></button>
+      {step === 4 ? (
+        <div className="screen">
+          <section className="phone-screen">
+            <div className="breakdown-kicker">Step 3 of 3 - Last Step</div>
+            <h2 className="phone-heading">Where should we <span className="accent">text your ranges?</span></h2>
+            <p className="phone-intro">We built a custom price range for your home across 4 brands. Drop your number and we&apos;ll text it over in under a minute.</p>
+            <div className="preview-card">
+              <div className="preview-header">You&apos;ll receive a text with:</div>
+              <div className="preview-item"><div className="preview-check" /><span>Your project range with all-in pricing</span></div>
+              <div className="preview-item"><div className="preview-check" /><span>Pricing for each brand:</span></div>
+              <div className="brand-row">
+                <span className="brand-pill">Wincore</span>
+                <span className="brand-pill">Simonton</span>
+                <span className="brand-pill">Pella</span>
+                <span className="brand-pill">Andersen</span>
               </div>
+              <div className="preview-item"><div className="preview-check" /><span>What similar St. Louis homes actually paid</span></div>
             </div>
-            <div className="window-row">
-              <div className="window-type">Casement<span className="window-type-hint">Cranks outward</span></div>
-              <div className="counter">
-                <button type="button" className="counter-btn" onClick={() => updateCount('casement', -1)}><Minus size={14} /></button>
-                <span className="counter-val">{counts.casement}</span>
-                <button type="button" className="counter-btn" onClick={() => updateCount('casement', 1)}><Plus size={14} /></button>
+            <form onSubmit={handleLeadSubmit}>
+              <div className="form-group">
+                <label className="form-label">Full Name</label>
+                <input type="text" className="form-input" placeholder="Sarah Johnson" value={name} onChange={event => setName(event.target.value)} />
               </div>
-            </div>
-            <div className="window-row">
-              <div className="window-type">Picture / fixed<span className="window-type-hint">Large, does not open</span></div>
-              <div className="counter">
-                <button type="button" className="counter-btn" onClick={() => updateCount('picture', -1)}><Minus size={14} /></button>
-                <span className="counter-val">{counts.picture}</span>
-                <button type="button" className="counter-btn" onClick={() => updateCount('picture', 1)}><Plus size={14} /></button>
+              <div className="form-group">
+                <label className="form-label">Mobile Number</label>
+                <input type="tel" className="form-input" placeholder="(314) 555-0199" value={phone} onChange={event => setPhone(event.target.value)} />
               </div>
-            </div>
-            <div className="window-row">
-              <div className="window-type">Specialty<span className="window-type-hint">Arched, bay, custom</span></div>
-              <div className="counter">
-                <button type="button" className="counter-btn" onClick={() => updateCount('specialty', -1)}><Minus size={14} /></button>
-                <span className="counter-val">{counts.specialty}</span>
-                <button type="button" className="counter-btn" onClick={() => updateCount('specialty', 1)}><Plus size={14} /></button>
+              <button className="cta-btn" type="submit" disabled={status.type === 'loading'}>
+                {status.type === 'loading' ? 'Sending...' : 'Text Me My Ranges'} <ArrowRight size={16} />
+              </button>
+              <p className="cta-fineprint">Free. No sales calls unless you ask.</p>
+              {status.message ? (
+                <p className={`status ${status.type === 'success' ? 'status-success' : 'status-error'}`}>{status.message}</p>
+              ) : null}
+            </form>
+          </section>
+        </div>
+      ) : null}
+
+      {step === 5 ? (
+        <div className="screen">
+          <section className="confirmation-screen">
+            <div className="confirm-badge"><Check size={40} /></div>
+            <h2 className="confirm-title">Texting you now{ name ? `, ${name.split(' ')[0]}` : ''}.</h2>
+            <p className="confirm-sub">Check your phone in a few seconds. Here&apos;s a preview of what lands in your messages:</p>
+            <div className="sms-preview">
+              <div className="sms-header">
+                <div className="sms-avatar">A</div>
+                <div className="sms-name">Alexis · Luitjens Exteriors</div>
+                <div className="sms-number">{PHONE}</div>
               </div>
+              <div className="sms-time">Today 10:43 AM</div>
+              <div className="sms-bubble">Hey{ name ? ` ${name.split(' ')[0]}` : ''}! Here&apos;s your window pricing for <strong>{address.trim() || '1234 Forsyth Blvd'}</strong> 👇</div>
+              <div className="sms-bubble">
+                <strong>{totalWindows} windows identified</strong>
+                <span className="divider">──────────</span>
+                <div className="sms-price-line"><span className="sms-brand-label">Wincore</span><span className="sms-brand-price">{formatRange(priceRanges.wincore)}</span></div>
+                <div className="sms-price-line"><span className="sms-brand-label">Simonton ⭐</span><span className="sms-brand-price">{formatRange(priceRanges.simonton)}</span></div>
+                <div className="sms-price-line"><span className="sms-brand-label">Pella</span><span className="sms-brand-price">{formatRange(priceRanges.pella)}</span></div>
+                <div className="sms-price-line"><span className="sms-brand-label">Andersen</span><span className="sms-brand-price">{formatRange(priceRanges.andersen)}</span></div>
+              </div>
+              <div className="sms-bubble">Want me to verify the count in person and lock in a final number? Reply YES and I&apos;ll text times. - Alexis</div>
             </div>
-          </div>
-
-          <div className="total-bar">
-            <span className="total-label">Total Windows</span>
-            <span className="total-count">{totalWindows}</span>
-          </div>
-          <a href="#phone-screen" className="cta-btn cta-link">Looks Right - Continue <ArrowRight size={16} /></a>
-          <p className="cta-fineprint">Still no phone number needed. One more step.</p>
-        </section>
-      </div>
-
-      <div className="annotation"><strong>Key design rule</strong>No prices are shown yet. The customer confirms the count first, then asks for the payoff.</div>
-
-      <div className="screen" id="phone-screen">
-        <div className="screen-label">Screen 4 - Phone Capture (the conversion)</div>
-        <section className="phone-screen">
-          <div className="breakdown-kicker">Step 3 of 3 - Last Step</div>
-          <h2 className="phone-heading">Where should we <span className="accent">text your ranges?</span></h2>
-          <p className="phone-intro">We built a custom price range for your home across 4 brands. Drop your number and we&apos;ll text it over in under a minute.</p>
-
-          <div className="preview-card">
-            <div className="preview-header">You&apos;ll receive a text with:</div>
-            <div className="preview-item"><div className="preview-check" /><span>Your project range with all-in pricing</span></div>
-            <div className="preview-item"><div className="preview-check" /><span>Pricing for each brand:</span></div>
-            <div className="brand-row">
-              <span className="brand-pill">Wincore</span>
-              <span className="brand-pill">Simonton</span>
-              <span className="brand-pill">Pella</span>
-              <span className="brand-pill">Andersen</span>
-            </div>
-            <div className="preview-item"><div className="preview-check" /><span>What similar St. Louis homes actually paid</span></div>
-          </div>
-
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label">Full Name</label>
-              <input type="text" className="form-input" placeholder="Sarah Johnson" value={name} onChange={event => setName(event.target.value)} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Mobile Number</label>
-              <input type="tel" className="form-input" placeholder="(314) 555-0199" value={phone} onChange={event => setPhone(event.target.value)} />
-            </div>
-
-            <button className="cta-btn" type="submit" disabled={status.type === 'loading'}>
-              {status.type === 'loading' ? 'Sending...' : 'Text Me My Ranges'} <ArrowRight size={16} />
-            </button>
-            <p className="cta-fineprint">Free. No sales calls unless you ask.</p>
-            {status.message ? (
-              <p className={`status ${status.type === 'success' ? 'status-success' : 'status-error'}`}>{status.message}</p>
-            ) : null}
-          </form>
-        </section>
-      </div>
-
-      <div className="annotation"><strong>This is the conversion moment</strong>Phone capture happens after the customer confirms the window count and wants pricing.</div>
-
-      <div className="screen" id="confirmation-screen">
-        <div className="screen-label">Screen 5 - Confirmation + SMS preview</div>
-        <section className="confirmation-screen">
-          <div className="confirm-badge"><Check size={40} /></div>
-          <h2 className="confirm-title">Texting you now{ name ? `, ${name.split(' ')[0]}` : ''}.</h2>
-          <p className="confirm-sub">Check your phone in a few seconds. Here&apos;s a preview of what lands in your messages:</p>
-
-          <div className="sms-preview">
-            <div className="sms-header">
-              <div className="sms-avatar">A</div>
-              <div className="sms-name">Alexis · Luitjens Exteriors</div>
-              <div className="sms-number">{PHONE}</div>
-            </div>
-            <div className="sms-time">Today 10:43 AM</div>
-
-            <div className="sms-bubble">Hey{ name ? ` ${name.split(' ')[0]}` : ''}! Here&apos;s your window pricing for <strong>{address.trim() || '1234 Forsyth Blvd'}</strong> 👇</div>
-            <div className="sms-bubble">
-              <strong>{totalWindows} windows identified</strong>
-              <span className="divider">──────────</span>
-              <div className="sms-price-line"><span className="sms-brand-label">Wincore</span><span className="sms-brand-price">{formatRange(priceRanges.wincore)}</span></div>
-              <div className="sms-price-line"><span className="sms-brand-label">Simonton ⭐</span><span className="sms-brand-price">{formatRange(priceRanges.simonton)}</span></div>
-              <div className="sms-price-line"><span className="sms-brand-label">Pella</span><span className="sms-brand-price">{formatRange(priceRanges.pella)}</span></div>
-              <div className="sms-price-line"><span className="sms-brand-label">Andersen</span><span className="sms-brand-price">{formatRange(priceRanges.andersen)}</span></div>
-            </div>
-            <div className="sms-bubble">Want me to verify the count in person and lock in a final number? Reply YES and I&apos;ll text times. - Alexis</div>
-          </div>
-
-          <div className="confirm-below">Want to skip the text and talk now?</div>
-          <a href={PHONE_HREF} onClick={trackPhoneConversion} className="cta-btn cta-link call-btn">Call {PHONE}</a>
-        </section>
-      </div>
-
-      <div className="annotation"><strong>The text is the payoff</strong>The pricing ranges are delivered in SMS to start a real conversation immediately.</div>
+            <div className="confirm-below">Want to skip the text and talk now?</div>
+            <a href={PHONE_HREF} onClick={trackPhoneConversion} className="cta-btn cta-link call-btn">Call {PHONE}</a>
+          </section>
+        </div>
+      ) : null}
 
       <div className="sticky-cta">
         <a href={PHONE_HREF} onClick={trackPhoneConversion} className="sticky-call"><Phone size={20} /></a>
-        <a href="#phone-screen" className="sticky-main">Text Me My Ranges <ArrowRight size={15} /></a>
+        <a href={step < 4 ? '#' : '#'} className="sticky-main" onClick={event => {
+          event.preventDefault();
+          if (step === 1) return;
+          if (step === 2) return;
+          if (step === 3) setStep(4);
+          if (step === 4) {
+            document.querySelector('.phone-screen form button[type="submit"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          if (step === 5) window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}>
+          {step < 4 ? 'Processing...' : 'Text Me My Ranges'} <ArrowRight size={15} />
+        </a>
       </div>
     </div>
   );
