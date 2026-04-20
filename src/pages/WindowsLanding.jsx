@@ -303,7 +303,9 @@ export default function WindowsLanding() {
           </section>
 
           <div className="owner-card">
-            <div className="owner-avatar">A+M</div>
+            <div className="owner-avatar">
+              <img src="/images/owners-couple.jpg" alt="Alexis and Michael Luitjens" className="owner-avatar-image" />
+            </div>
             <div className="owner-info">
               <div className="owner-role">Who You&apos;re Working With</div>
               <div className="owner-names">Alexis &amp; Michael Luitjens</div>
