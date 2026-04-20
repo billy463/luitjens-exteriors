@@ -1,17 +1,23 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, Check, MapPin, Minus, Phone, Plus } from 'lucide-react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowRight, Check, Eye, MapPin, Minus, Phone, Plus } from 'lucide-react';
 import { trackLeadConversion, trackPhoneConversion } from '../lib/googleAds';
 import { trackMetaLead } from '../lib/metaPixel';
 import './WindowsLanding.css';
 
 const PHONE = '(314) 882-0973';
 const PHONE_HREF = 'tel:+13148820973';
+const MIN_ANALYZE_MS = 15000;
+
+const fallbackNarrative =
+  "We couldn't get a clear look at your home from public photos. No problem - just enter your window counts below and we'll take it from there.";
 
 const initialCounts = {
-  doubleHung: 8,
-  casement: 2,
-  picture: 1,
-  specialty: 1,
+  single_hung_double_hung: 0,
+  picture: 0,
+  sliding: 0,
+  bay_bow: 0,
+  patio_door: 0,
+  other: 0,
 };
 
 const perWindowRange = {
@@ -21,27 +27,26 @@ const perWindowRange = {
   andersen: [1400, 1900],
 };
 
-const emptyProgress = {
-  foundProperty: false,
-  pulledImages: false,
-  countedWindows: false,
-  matchedPricing: false,
-  builtRanges: false,
-};
-
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 function formatRange([low, high]) {
   return `$${low.toLocaleString()} - $${high.toLocaleString()}`;
 }
 
-function mapModelCountsToUi(counts = {}) {
-  const get = key => Number(counts?.[key] || 0);
+function sanitizeCounts(input = {}) {
+  const normalize = key => {
+    const num = Number(input?.[key]);
+    if (!Number.isFinite(num) || num < 0) return 0;
+    return Math.min(30, Math.round(num));
+  };
+
   return {
-    doubleHung: get('double-hung'),
-    casement: get('casement') + get('awning'),
-    picture: get('picture') + get('sliding'),
-    specialty: get('bay-bow') + get('garden') + get('egress'),
+    single_hung_double_hung: normalize('single_hung_double_hung'),
+    picture: normalize('picture'),
+    sliding: normalize('sliding'),
+    bay_bow: normalize('bay_bow'),
+    patio_door: normalize('patio_door'),
+    other: normalize('other'),
   };
 }
 
@@ -51,14 +56,18 @@ export default function WindowsLanding() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [counts, setCounts] = useState(initialCounts);
+  const [narrative, setNarrative] = useState(fallbackNarrative);
   const [status, setStatus] = useState({ type: 'idle', message: '' });
-  const [progress, setProgress] = useState(emptyProgress);
+  const [progress, setProgress] = useState({
+    foundProperty: false,
+    pulledImages: false,
+    countedWindows: false,
+    matchedPricing: false,
+    builtRanges: false,
+  });
+  const [analysisPulse, setAnalysisPulse] = useState(0);
   const [previewImage, setPreviewImage] = useState('/images/windows-landing-hero-house.jpg');
   const [images, setImages] = useState([]);
-  const [analysisConfidence, setAnalysisConfidence] = useState('low');
-  const [analysisNotes, setAnalysisNotes] = useState([]);
-  const [manualMode, setManualMode] = useState(false);
-  const [analysisPulse, setAnalysisPulse] = useState(0);
   const addressInputRef = useRef(null);
 
   const totalWindows = useMemo(
@@ -66,18 +75,23 @@ export default function WindowsLanding() {
     [counts],
   );
 
+  const totalPricedUnits = useMemo(
+    () => counts.single_hung_double_hung + counts.picture + counts.sliding + counts.bay_bow + counts.other,
+    [counts],
+  );
+
   const priceRanges = useMemo(
     () => ({
-      wincore: [perWindowRange.wincore[0] * totalWindows, perWindowRange.wincore[1] * totalWindows],
-      simonton: [perWindowRange.simonton[0] * totalWindows, perWindowRange.simonton[1] * totalWindows],
-      pella: [perWindowRange.pella[0] * totalWindows, perWindowRange.pella[1] * totalWindows],
-      andersen: [perWindowRange.andersen[0] * totalWindows, perWindowRange.andersen[1] * totalWindows],
+      wincore: [perWindowRange.wincore[0] * totalPricedUnits, perWindowRange.wincore[1] * totalPricedUnits],
+      simonton: [perWindowRange.simonton[0] * totalPricedUnits, perWindowRange.simonton[1] * totalPricedUnits],
+      pella: [perWindowRange.pella[0] * totalPricedUnits, perWindowRange.pella[1] * totalPricedUnits],
+      andersen: [perWindowRange.andersen[0] * totalPricedUnits, perWindowRange.andersen[1] * totalPricedUnits],
     }),
-    [totalWindows],
+    [totalPricedUnits],
   );
 
   useEffect(() => {
-    const title = 'Luitjens Exteriors - See Your Window Pricing in 30 Seconds';
+    const title = 'Luitjens Exteriors - See Your Window Pricing in About 3 Minutes';
     const description =
       'Lower your energy bills with the right windows. Enter your address and get your St. Louis pricing ranges by text.';
     document.title = title;
@@ -161,10 +175,18 @@ export default function WindowsLanding() {
     };
   }, []);
 
+  const setCountValue = (key, value) => {
+    setCounts(current => {
+      const next = Number(value);
+      const clamped = Number.isFinite(next) ? Math.max(0, Math.min(30, Math.round(next))) : 0;
+      return { ...current, [key]: clamped };
+    });
+  };
+
   const updateCount = (key, delta) => {
     setCounts(current => ({
       ...current,
-      [key]: Math.max(0, current[key] + delta),
+      [key]: Math.max(0, Math.min(30, current[key] + delta)),
     }));
   };
 
@@ -176,72 +198,76 @@ export default function WindowsLanding() {
     }
 
     setStatus({ type: 'loading', message: '' });
-    setProgress(emptyProgress);
-    setManualMode(false);
-    setAnalysisConfidence('low');
-    setAnalysisNotes([]);
+    setProgress({
+      foundProperty: false,
+      pulledImages: false,
+      countedWindows: false,
+      matchedPricing: false,
+      builtRanges: false,
+    });
+    setNarrative(fallbackNarrative);
+    setCounts(initialCounts);
     setStep(2);
 
     const startedAt = Date.now();
+    let availableImages = [];
+    let propertyData = null;
 
     try {
       setProgress(current => ({ ...current, foundProperty: true }));
 
-      const imageResponse = await fetch(`/api/property-images?address=${encodeURIComponent(address.trim())}`);
-      const imagePayload = await imageResponse.json().catch(() => ({}));
-      if (!imageResponse.ok) {
-        throw new Error(imagePayload?.error || 'Could not load property photos for that address.');
+      const propertyResponse = await fetch(`/api/property-images?address=${encodeURIComponent(address.trim())}`);
+      const propertyPayload = await propertyResponse.json().catch(() => ({}));
+
+      if (propertyResponse.ok) {
+        availableImages = Array.isArray(propertyPayload.images) ? propertyPayload.images.filter(Boolean) : [];
+        propertyData = propertyPayload?.propertyData && typeof propertyPayload.propertyData === 'object'
+          ? propertyPayload.propertyData
+          : null;
       }
 
-      const availableImages = Array.isArray(imagePayload.images) ? imagePayload.images.filter(Boolean) : [];
       setImages(availableImages);
-      if (availableImages[0]) {
-        setPreviewImage(availableImages[0]);
-      }
+      if (availableImages[0]) setPreviewImage(availableImages[0]);
       setProgress(current => ({ ...current, pulledImages: true }));
 
       const countResponse = await fetch('/api/window-count', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ images: availableImages }),
+        body: JSON.stringify({ images: availableImages, propertyData }),
       });
+
       const countPayload = await countResponse.json().catch(() => ({}));
-      if (!countResponse.ok) {
-        throw new Error(countPayload?.error || 'Could not estimate window counts.');
-      }
-
       setProgress(current => ({ ...current, countedWindows: true, matchedPricing: true, builtRanges: true }));
-      const mappedCounts = mapModelCountsToUi(countPayload.counts);
-      const mappedTotal = Object.values(mappedCounts).reduce((sum, val) => sum + val, 0);
-      const confidence = `${countPayload?.confidence || 'low'}`.toLowerCase();
-      setAnalysisConfidence(confidence);
-      setAnalysisNotes(Array.isArray(countPayload?.notes) ? countPayload.notes.slice(0, 3) : []);
-      if (mappedTotal > 0) {
-        setCounts(mappedCounts);
-      }
-      if (!mappedTotal || confidence === 'low') {
-        setManualMode(true);
-      }
 
-      const elapsed = Date.now() - startedAt;
-      if (elapsed < 15000) {
-        await wait(15000 - elapsed);
+      if (countResponse.ok) {
+        const nextCounts = sanitizeCounts(countPayload?.counts || {});
+        setCounts(nextCounts);
+        setNarrative(`${countPayload?.narrative || fallbackNarrative}`.trim() || fallbackNarrative);
+      } else {
+        setNarrative(fallbackNarrative);
       }
-
-      setStep(3);
-      setStatus({ type: 'idle', message: '' });
-    } catch (error) {
-      setManualMode(true);
-      setAnalysisConfidence('low');
-      setAnalysisNotes(['We could not confidently detect all window types from the listing photos.']);
+    } catch {
       setProgress(current => ({ ...current, countedWindows: true, matchedPricing: true, builtRanges: true }));
-      setStatus({ type: 'idle', message: '' });
-      const elapsed = Date.now() - startedAt;
-      if (elapsed < 15000) {
-        await wait(15000 - elapsed);
-      }
-      setStep(3);
+      setNarrative(fallbackNarrative);
     }
+
+    const elapsed = Date.now() - startedAt;
+    if (elapsed < MIN_ANALYZE_MS) {
+      await wait(MIN_ANALYZE_MS - elapsed);
+    }
+
+    setStep(3);
+    setStatus({ type: 'idle', message: '' });
+  };
+
+  const handleProceedFromCounts = () => {
+    if (totalWindows <= 0) {
+      setStatus({ type: 'error', message: 'Please set at least one window before continuing.' });
+      return;
+    }
+
+    setStatus({ type: 'idle', message: '' });
+    setStep(4);
   };
 
   const handleLeadSubmit = async event => {
@@ -249,6 +275,11 @@ export default function WindowsLanding() {
 
     if (!address.trim() || !name.trim() || !phone.trim()) {
       setStatus({ type: 'error', message: 'Please complete address, full name, and mobile number.' });
+      return;
+    }
+
+    if (totalWindows <= 0) {
+      setStatus({ type: 'error', message: 'Please set your window counts before submitting.' });
       return;
     }
 
@@ -265,7 +296,7 @@ export default function WindowsLanding() {
           address: address.trim(),
           phone: phone.trim(),
           source: '/windows-landing sms funnel',
-          details: `Window count estimate: ${totalWindows} (DH:${counts.doubleHung}, Casement:${counts.casement}, Picture:${counts.picture}, Specialty:${counts.specialty}), images analyzed: ${images.length}`,
+          details: `Window count estimate: ${totalWindows} (single/double-hung:${counts.single_hung_double_hung}, picture:${counts.picture}, sliding:${counts.sliding}, bay/bow:${counts.bay_bow}, patio door:${counts.patio_door}, other:${counts.other}), images analyzed: ${images.length}`,
         }),
       });
 
@@ -281,6 +312,14 @@ export default function WindowsLanding() {
       setStatus({ type: 'error', message: error.message || 'Submission failed. Please call us now.' });
     }
   };
+
+  const progressItems = [
+    { label: 'Found your property', done: progress.foundProperty },
+    { label: 'Pulled listing photos', done: progress.pulledImages },
+    { label: 'Counting windows by type...', done: progress.countedWindows },
+    { label: 'Matching St. Louis price data', done: progress.matchedPricing },
+    { label: 'Building your ranges', done: progress.builtRanges },
+  ];
 
   return (
     <div className="windows-landing-v2">
@@ -358,13 +397,7 @@ export default function WindowsLanding() {
             <h2 className="analyzing-title">Analyzing your home...</h2>
             <p className="analyzing-sub">This takes about 3 minutes.</p>
             <div className="progress-list">
-              {[
-                { label: 'Found your property', done: progress.foundProperty },
-                { label: 'Pulled listing photos', done: progress.pulledImages },
-                { label: 'Counting windows by type...', done: progress.countedWindows },
-                { label: 'Matching St. Louis price data', done: progress.matchedPricing },
-                { label: 'Building your ranges', done: progress.builtRanges },
-              ].map((item, idx) => (
+              {progressItems.map((item, idx) => (
                 <div key={item.label} className={`progress-item ${item.done ? 'done' : ''} ${analysisPulse === idx ? 'active' : ''}`}>
                   <div className="progress-check" />
                   <span>{item.label}</span>
@@ -381,67 +414,126 @@ export default function WindowsLanding() {
             <div className="breakdown-header-row">
               <div className="breakdown-kicker">Step 2 of 3</div>
               <h2 className="breakdown-title">Here&apos;s what we found. Look right?</h2>
-              <p className="breakdown-sub">Tap + or - to correct anything we missed. Back-side windows are the most common miss.</p>
+              <p className="breakdown-sub">Tap +, -, or type directly to adjust any count so it matches your home.</p>
               <div className="address-chip"><MapPin size={14} />{address.trim() || '1234 Forsyth Blvd'}</div>
-              <div className={`confidence-chip confidence-${analysisConfidence}`}>
-                Confidence: {analysisConfidence.toUpperCase()}
-              </div>
-              {manualMode ? (
-                <p className="manual-mode-note">
-                  We need your help to finish this accurately. Please adjust the window counts below before continuing.
-                </p>
-              ) : null}
-              {analysisNotes.length ? (
-                <ul className="analysis-notes">
-                  {analysisNotes.map(note => (
-                    <li key={note}>{note}</li>
-                  ))}
-                </ul>
-              ) : null}
+            </div>
+
+            <div className="narrative-card" role="status" aria-live="polite">
+              <div className="narrative-label"><Eye size={14} />Here&apos;s what I found</div>
+              <p className="narrative-text">{narrative || fallbackNarrative}</p>
             </div>
 
             <div className="window-list">
               <div className="window-row">
-                <div className="window-type">Double-hung<span className="window-type-hint">Slides up &amp; down</span></div>
+                <div className="window-type">Single / Double Hung<span className="window-type-hint">Standard vertical slider windows</span></div>
                 <div className="counter">
-                  <button type="button" className="counter-btn" onClick={() => updateCount('doubleHung', -1)}><Minus size={14} /></button>
-                  <span className="counter-val">{counts.doubleHung}</span>
-                  <button type="button" className="counter-btn" onClick={() => updateCount('doubleHung', 1)}><Plus size={14} /></button>
+                  <button type="button" className="counter-btn" onClick={() => updateCount('single_hung_double_hung', -1)}><Minus size={14} /></button>
+                  <input
+                    type="number"
+                    min="0"
+                    max="30"
+                    value={counts.single_hung_double_hung}
+                    onChange={event => setCountValue('single_hung_double_hung', event.target.value)}
+                    className="counter-input"
+                    aria-label="Single and double hung window count"
+                  />
+                  <button type="button" className="counter-btn" onClick={() => updateCount('single_hung_double_hung', 1)}><Plus size={14} /></button>
                 </div>
               </div>
               <div className="window-row">
-                <div className="window-type">Casement<span className="window-type-hint">Cranks outward</span></div>
-                <div className="counter">
-                  <button type="button" className="counter-btn" onClick={() => updateCount('casement', -1)}><Minus size={14} /></button>
-                  <span className="counter-val">{counts.casement}</span>
-                  <button type="button" className="counter-btn" onClick={() => updateCount('casement', 1)}><Plus size={14} /></button>
-                </div>
-              </div>
-              <div className="window-row">
-                <div className="window-type">Picture / fixed<span className="window-type-hint">Large, does not open</span></div>
+                <div className="window-type">Picture<span className="window-type-hint">Large fixed windows</span></div>
                 <div className="counter">
                   <button type="button" className="counter-btn" onClick={() => updateCount('picture', -1)}><Minus size={14} /></button>
-                  <span className="counter-val">{counts.picture}</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="30"
+                    value={counts.picture}
+                    onChange={event => setCountValue('picture', event.target.value)}
+                    className="counter-input"
+                    aria-label="Picture window count"
+                  />
                   <button type="button" className="counter-btn" onClick={() => updateCount('picture', 1)}><Plus size={14} /></button>
                 </div>
               </div>
               <div className="window-row">
-                <div className="window-type">Specialty<span className="window-type-hint">Arched, bay, custom</span></div>
+                <div className="window-type">Sliding<span className="window-type-hint">Horizontal sliding windows</span></div>
                 <div className="counter">
-                  <button type="button" className="counter-btn" onClick={() => updateCount('specialty', -1)}><Minus size={14} /></button>
-                  <span className="counter-val">{counts.specialty}</span>
-                  <button type="button" className="counter-btn" onClick={() => updateCount('specialty', 1)}><Plus size={14} /></button>
+                  <button type="button" className="counter-btn" onClick={() => updateCount('sliding', -1)}><Minus size={14} /></button>
+                  <input
+                    type="number"
+                    min="0"
+                    max="30"
+                    value={counts.sliding}
+                    onChange={event => setCountValue('sliding', event.target.value)}
+                    className="counter-input"
+                    aria-label="Sliding window count"
+                  />
+                  <button type="button" className="counter-btn" onClick={() => updateCount('sliding', 1)}><Plus size={14} /></button>
+                </div>
+              </div>
+              <div className="window-row">
+                <div className="window-type">Bay / Bow<span className="window-type-hint">Projected bay or bow windows</span></div>
+                <div className="counter">
+                  <button type="button" className="counter-btn" onClick={() => updateCount('bay_bow', -1)}><Minus size={14} /></button>
+                  <input
+                    type="number"
+                    min="0"
+                    max="30"
+                    value={counts.bay_bow}
+                    onChange={event => setCountValue('bay_bow', event.target.value)}
+                    className="counter-input"
+                    aria-label="Bay and bow window count"
+                  />
+                  <button type="button" className="counter-btn" onClick={() => updateCount('bay_bow', 1)}><Plus size={14} /></button>
+                </div>
+              </div>
+              <div className="window-row">
+                <div className="window-type">Sliding Patio Door / French Doors<span className="window-type-hint">Confirm patio and exterior door glass units</span></div>
+                <div className="counter">
+                  <button type="button" className="counter-btn" onClick={() => updateCount('patio_door', -1)}><Minus size={14} /></button>
+                  <input
+                    type="number"
+                    min="0"
+                    max="30"
+                    value={counts.patio_door}
+                    onChange={event => setCountValue('patio_door', event.target.value)}
+                    className="counter-input"
+                    aria-label="Patio and French door count"
+                  />
+                  <button type="button" className="counter-btn" onClick={() => updateCount('patio_door', 1)}><Plus size={14} /></button>
+                </div>
+              </div>
+              <div className="window-row">
+                <div className="window-type">Other<span className="window-type-hint">Anything that doesn&apos;t fit the categories above</span></div>
+                <div className="counter">
+                  <button type="button" className="counter-btn" onClick={() => updateCount('other', -1)}><Minus size={14} /></button>
+                  <input
+                    type="number"
+                    min="0"
+                    max="30"
+                    value={counts.other}
+                    onChange={event => setCountValue('other', event.target.value)}
+                    className="counter-input"
+                    aria-label="Other window count"
+                  />
+                  <button type="button" className="counter-btn" onClick={() => updateCount('other', 1)}><Plus size={14} /></button>
                 </div>
               </div>
             </div>
+
             <div className="total-bar">
-              <span className="total-label">Total Windows</span>
-              <span className="total-count">{totalWindows}</span>
+              <span className="total-label">Total</span>
+              <span className="total-count">{totalWindows} windows</span>
             </div>
-            <button type="button" className="cta-btn cta-link" onClick={() => setStep(4)}>
+
+            <p className="counter-helper">These are starting estimates - adjust any number to match your home. Alexis or Michael will verify everything during your free in-home consultation.</p>
+
+            <button type="button" className="cta-btn cta-link" onClick={handleProceedFromCounts}>
               Looks Right - Continue <ArrowRight size={16} />
             </button>
-            <p className="cta-fineprint">Still no phone number needed. One more step.</p>
+
+            {status.type === 'error' ? <p className="status status-error">{status.message}</p> : null}
           </section>
         </div>
       ) : null}
@@ -498,12 +590,12 @@ export default function WindowsLanding() {
                 <div className="sms-number">{PHONE}</div>
               </div>
               <div className="sms-time">Today 10:43 AM</div>
-              <div className="sms-bubble">Hey{ name ? ` ${name.split(' ')[0]}` : ''}! Here&apos;s your window pricing for <strong>{address.trim() || '1234 Forsyth Blvd'}</strong> 👇</div>
+              <div className="sms-bubble">Hey{ name ? ` ${name.split(' ')[0]}` : ''}! Here&apos;s your window pricing for <strong>{address.trim() || '1234 Forsyth Blvd'}</strong> ??</div>
               <div className="sms-bubble">
                 <strong>{totalWindows} windows identified</strong>
-                <span className="divider">──────────</span>
+                <span className="divider">----------</span>
                 <div className="sms-price-line"><span className="sms-brand-label">Wincore</span><span className="sms-brand-price">{formatRange(priceRanges.wincore)}</span></div>
-                <div className="sms-price-line"><span className="sms-brand-label">Simonton ⭐</span><span className="sms-brand-price">{formatRange(priceRanges.simonton)}</span></div>
+                <div className="sms-price-line"><span className="sms-brand-label">Simonton ?</span><span className="sms-brand-price">{formatRange(priceRanges.simonton)}</span></div>
                 <div className="sms-price-line"><span className="sms-brand-label">Pella</span><span className="sms-brand-price">{formatRange(priceRanges.pella)}</span></div>
                 <div className="sms-price-line"><span className="sms-brand-label">Andersen</span><span className="sms-brand-price">{formatRange(priceRanges.andersen)}</span></div>
               </div>
@@ -514,7 +606,6 @@ export default function WindowsLanding() {
           </section>
         </div>
       ) : null}
-
     </div>
   );
 }

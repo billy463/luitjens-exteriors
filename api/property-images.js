@@ -1,113 +1,89 @@
-const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.avif'];
+const REALTY_ENDPOINT = 'https://zillow.realtyapi.io/pro/byaddress';
 
-const normalizeImageUrl = value => {
-  if (!value || typeof value !== 'string') return null;
-  const trimmed = value.trim();
-  if (!trimmed) return null;
+const URL_BLOCKLIST = ['streetview', 'map', 'logo', 'agent', 'profile', 'static-maps'];
+const EXTERIOR_HINTS = ['exterior', 'front', 'back', 'side', 'house'];
 
-  if (trimmed.startsWith('//')) {
-    return `https:${trimmed}`;
-  }
-
-  if (trimmed.includes('{imageParameters}')) {
-    return `https:${trimmed.replace('{imageParameters}', 'fit-in/1400x1000/filters:quality(85)')}`;
-  }
-
-  return trimmed;
-};
-
-const isLikelyPhoto = url => {
-  if (!url || typeof url !== 'string') return false;
-  const lower = url.toLowerCase();
-
-  const definitelyNotPhoto =
-    lower.includes('logo') ||
-    lower.includes('icon') ||
-    lower.includes('sprite') ||
-    lower.includes('avatar') ||
-    lower.includes('mapbox') ||
-    lower.includes('googleapis.com/maps') ||
-    lower.includes('streetview');
-  if (definitelyNotPhoto) return false;
-
-  if (IMAGE_EXTENSIONS.some(ext => lower.includes(ext))) return true;
-  if (lower.includes('photos.zillowstatic.com')) return true;
-
-  return (
-    lower.includes('image') ||
-    lower.includes('photo') ||
-    lower.includes('photos')
-  );
-};
-
-const scorePhotoUrl = url => {
-  const lower = url.toLowerCase();
-  let score = 0;
-  if (lower.includes('cover')) score += 8;
-  if (lower.includes('hero')) score += 7;
-  if (lower.includes('main')) score += 6;
-  if (lower.includes('listing')) score += 5;
-  if (lower.includes('zillow')) score += 4;
-  if (lower.includes('photo')) score += 3;
-  if (lower.includes('image')) score += 2;
-  if (lower.includes('large') || lower.includes('hd')) score += 1;
-  return score;
-};
-
-const collectImages = input => {
-  const found = [];
-  const visited = new Set();
-
-  const walk = value => {
-    if (!value || typeof value !== 'object') return;
-    if (visited.has(value)) return;
-    visited.add(value);
-
-    if (Array.isArray(value)) {
-      value.forEach(walk);
-      return;
-    }
-
-    Object.entries(value).forEach(([key, current]) => {
-      if (typeof current === 'string') {
-        const lowerKey = key.toLowerCase();
-        const normalized = normalizeImageUrl(current);
-        const keyLooksLikePhoto =
-          lowerKey.includes('image') ||
-          lowerKey.includes('photo') ||
-          lowerKey.includes('src') ||
-          lowerKey.includes('cover') ||
-          lowerKey.includes('thumbnail');
-        const urlLooksLikePhotoHost =
-          normalized && normalized.toLowerCase().includes('photos.zillowstatic.com');
-        if ((keyLooksLikePhoto || urlLooksLikePhotoHost) && normalized && isLikelyPhoto(normalized)) {
-          found.push(normalized);
-        }
-      } else {
-        walk(current);
-      }
-    });
-  };
-
-  walk(input);
-
-  const unique = [...new Set(found)];
-  return unique.sort((a, b) => scorePhotoUrl(b) - scorePhotoUrl(a));
-};
-
-const fetchJson = async (url, options = {}) => {
-  const response = await fetch(url, options);
-  const text = await response.text();
-  let payload = {};
-
+const timeoutFetch = async (url, options = {}, timeoutMs = 15000) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    payload = text ? JSON.parse(text) : {};
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+const shortErrorMessage = payload => {
+  if (!payload || typeof payload !== 'object') return 'upstream_error';
+  const message = payload.error || payload.message || payload.detail || payload.status || 'upstream_error';
+  return `${message}`.slice(0, 140);
+};
+
+const parseJsonSafe = async response => {
+  const text = await response.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
   } catch {
-    payload = { raw: text };
+    return { raw: text.slice(0, 300) };
+  }
+};
+
+const pickJpegUrl = jpegSources => {
+  if (!Array.isArray(jpegSources) || jpegSources.length === 0) return null;
+  const candidates = jpegSources
+    .filter(item => item && typeof item.url === 'string')
+    .map(item => ({
+      url: item.url,
+      width: Number(item.width) || null,
+    }));
+
+  if (candidates.length === 0) return null;
+
+  const exact = candidates.find(item => item.width === 1024);
+  if (exact) return exact.url;
+
+  const under2k = candidates
+    .filter(item => item.width && item.width <= 2000)
+    .sort((a, b) => Math.abs((a.width || 1024) - 1024) - Math.abs((b.width || 1024) - 1024));
+  if (under2k.length > 0) return under2k[0].url;
+
+  const fallback = candidates.sort((a, b) => (b.width || 0) - (a.width || 0));
+  return fallback[0]?.url || null;
+};
+
+const isUsablePhotoUrl = maybeUrl => {
+  if (!maybeUrl || typeof maybeUrl !== 'string') return false;
+  const url = maybeUrl.trim();
+  const lower = url.toLowerCase();
+  if (!lower.includes('photos.zillowstatic.com/fp/')) return false;
+  return !URL_BLOCKLIST.some(token => lower.includes(token));
+};
+
+const normalizePropertyObject = payload => {
+  if (!payload || typeof payload !== 'object') return null;
+  if (Array.isArray(payload)) return null;
+
+  if (Array.isArray(payload.responsivePhotos) || Array.isArray(payload.responsivePhotosOriginalRatio)) {
+    return payload;
   }
 
-  return { response, payload };
+  const directCandidates = [payload.property, payload.zillow, payload.data, payload.result];
+  return directCandidates.find(
+    candidate =>
+      candidate &&
+      typeof candidate === 'object' &&
+      (Array.isArray(candidate.responsivePhotos) || Array.isArray(candidate.responsivePhotosOriginalRatio)),
+  ) || payload;
 };
+
+const getPropertyData = property => ({
+  livingArea: Number(property?.livingArea || property?.livingAreaValue || property?.livingAreaSqFt) || null,
+  yearBuilt: Number(property?.yearBuilt) || null,
+  bedrooms: Number(property?.bedrooms) || null,
+  bathrooms: Number(property?.bathrooms) || Number(property?.bathroomsFull) || null,
+  homeType: property?.homeType || property?.propertyType || null,
+});
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -120,81 +96,99 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Address is required.' });
   }
 
-  const apiKey = `${process.env.REALTY_API_KEY || ''}`.trim();
+  const apiKey = `${process.env.REALTYAPI_KEY || ''}`.trim();
   if (!apiKey) {
-    return res.status(500).json({ error: 'REALTY_API_KEY is not configured.' });
+    return res.status(500).json({ error: 'REALTYAPI_KEY not configured' });
   }
 
   const encodedAddress = encodeURIComponent(address);
+  const endpointUrl = `${REALTY_ENDPOINT}?propertyaddress=${encodedAddress}`;
+  const authMethod = 'x-realtyapi-key';
 
-  const attempts = [];
-  const endpoints = [
-    {
-      url: `https://api.realtyapi.io/pro/byaddress?propertyaddress=${encodedAddress}`,
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        Accept: 'application/json',
+  let response;
+  let payload;
+
+  try {
+    response = await timeoutFetch(
+      endpointUrl,
+      {
+        headers: {
+          'x-realtyapi-key': apiKey,
+          Accept: 'application/json',
+        },
       },
-    },
-    {
-      url: `https://zillow.realtyapi.io/propimages?byaddress=${encodedAddress}`,
-      headers: {
-        'x-realtyapi-key': apiKey,
-        Accept: 'application/json',
-      },
-    },
-    {
-      url: `https://zillow.realtyapi.io/property_images?byaddress=${encodedAddress}`,
-      headers: {
-        'x-realtyapi-key': apiKey,
-        Accept: 'application/json',
-      },
-    },
-  ];
-
-  let lastError = null;
-
-  for (const endpoint of endpoints) {
-    try {
-      const { response, payload } = await fetchJson(endpoint.url, {
-        headers: endpoint.headers,
-      });
-
-      const images = collectImages(payload);
-      attempts.push({
-        url: endpoint.url,
-        status: response.status,
-        imageCount: images.length,
-      });
-
-      if (response.ok && images.length > 0) {
-        return res.status(200).json({
-          address,
-          images,
-          imageCount: images.length,
-          source: endpoint.url,
-          attempts,
-        });
-      }
-    } catch (error) {
-      lastError = error;
-      attempts.push({
-        url: endpoint.url,
-        error: error.message,
-      });
-    }
-  }
-
-  if (lastError && attempts.every(item => item.error)) {
-    return res.status(500).json({
-      error: 'Unable to reach RealtyAPI.',
-      details: lastError.message,
-      attempts,
+      15000,
+    );
+    payload = await parseJsonSafe(response);
+  } catch (error) {
+    console.error('[property-images] call failed', {
+      endpoint: REALTY_ENDPOINT,
+      authMethod,
+      error: error?.message,
+    });
+    return res.status(200).json({
+      images: [],
+      imageCount: 0,
+      source: 'realtyapi',
+      error: `fetch_failed ${`${error?.message || 'request failed'}`.slice(0, 120)}`,
     });
   }
 
-  return res.status(404).json({
-    error: 'No property photos were found for this address.',
-    attempts,
+  console.log('[property-images] first call', {
+    endpoint: REALTY_ENDPOINT,
+    authMethod,
+    status: response.status,
+  });
+
+  if (!response.ok) {
+    console.error('[property-images] non-2xx response', {
+      status: response.status,
+      body: payload,
+    });
+
+    return res.status(200).json({
+      images: [],
+      imageCount: 0,
+      source: 'realtyapi',
+      error: `${response.status} ${shortErrorMessage(payload)}`,
+    });
+  }
+
+  const property = normalizePropertyObject(payload) || {};
+  const photos =
+    (Array.isArray(property?.responsivePhotos) && property.responsivePhotos) ||
+    (Array.isArray(property?.responsivePhotosOriginalRatio) && property.responsivePhotosOriginalRatio) ||
+    [];
+
+  const prioritized = photos
+    .map(photo => {
+      const caption = `${photo?.caption || ''}`.toLowerCase();
+      const score = caption
+        ? EXTERIOR_HINTS.some(token => caption.includes(token))
+          ? 2
+          : 1
+        : 3;
+      return { photo, score };
+    })
+    .sort((a, b) => b.score - a.score)
+    .map(item => item.photo);
+
+  const images = [];
+  const seen = new Set();
+
+  for (const photo of prioritized) {
+    const url = pickJpegUrl(photo?.mixedSources?.jpeg || []);
+    if (!isUsablePhotoUrl(url)) continue;
+    if (seen.has(url)) continue;
+    seen.add(url);
+    images.push(url);
+    if (images.length >= 10) break;
+  }
+
+  return res.status(200).json({
+    images,
+    imageCount: images.length,
+    source: 'realtyapi',
+    propertyData: getPropertyData(property),
   });
 }

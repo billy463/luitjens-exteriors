@@ -1,149 +1,120 @@
-const SYSTEM_PROMPT =
-  'You are a residential window estimator. Count visible windows from listing photos and return only JSON.';
+﻿import Anthropic from '@anthropic-ai/sdk';
 
-const USER_PROMPT = `Analyze these property photos and estimate visible window counts by type.
+const MODEL_NAME = 'claude-haiku-4-5';
 
-Return JSON with exactly this shape:
-{
-  "counts": {
-    "double-hung": number,
-    "casement": number,
-    "sliding": number,
-    "picture": number,
-    "awning": number,
-    "bay-bow": number,
-    "garden": number,
-    "egress": number
-  },
-  "confidence": "low" | "medium" | "high",
-  "notes": ["short note", "short note"]
-}
-
-Rules:
-- Count only windows reasonably visible in the provided photos.
-- Use 0 where unsure instead of guessing aggressively.
-- Bay and bow should be combined as "bay-bow".
-- Return only valid JSON with no markdown.`;
-
-const DEFAULT_RESPONSE = {
+const MANUAL_FALLBACK = {
   counts: {
-    'double-hung': 0,
-    casement: 0,
-    sliding: 0,
+    single_hung_double_hung: 0,
     picture: 0,
-    awning: 0,
-    'bay-bow': 0,
-    garden: 0,
-    egress: 0,
+    sliding: 0,
+    bay_bow: 0,
+    patio_door: 0,
+    other: 0,
   },
-  confidence: 'low',
-  notes: ['Model could not confidently classify windows from provided photos.'],
+  total: 0,
+  narrative:
+    "We couldn't get a clear look at your home from public photos. No problem - just enter your window counts below and we'll take it from there.",
+  facesObserved: [],
+  imagesAnalyzed: 0,
+  model: null,
 };
 
-const extractJsonFromText = text => {
-  if (!text || typeof text !== 'string') return DEFAULT_RESPONSE;
-  const trimmed = text.trim();
-  const firstBrace = trimmed.indexOf('{');
-  const lastBrace = trimmed.lastIndexOf('}');
-  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) return DEFAULT_RESPONSE;
-  const maybeJson = trimmed.slice(firstBrace, lastBrace + 1);
-  const parsed = JSON.parse(maybeJson);
-  return {
-    ...DEFAULT_RESPONSE,
-    ...parsed,
-    counts: {
-      ...DEFAULT_RESPONSE.counts,
-      ...(parsed?.counts || {}),
+const SYSTEM_PROMPT = `You are analyzing photos of a residential home to give a homeowner a starting
+estimate of their window count by type. This is a best guess that the homeowner
+will confirm — be direct and confident, not hedging.
+Count windows visible in the photos and classify by type:
+
+single_hung_double_hung: standard rectangular windows that slide vertically
+picture: large fixed windows that don't open
+sliding: horizontal sliding windows
+bay_bow: bay or bow windows that project outward
+patio_door: sliding glass doors or French doors (back/side of house)
+other: anything that doesn't fit above
+
+Then estimate windows you cannot see (typically the back of the house) based
+on home size and typical layouts. Include these in your totals.
+Write a first-person narrative (3-4 sentences, ~300 characters) describing
+what you observed and your estimate. Examples of good narratives:
+"I looked at 5 photos of your home — a two-story house with roughly 6 windows
+visible on the front and 2 on the side. I estimated another 4-5 on the back
+since that side isn't visible in the photos. That puts you around 13 windows
+total, plus what looks like a sliding patio door."
+"From the 3 photos available, I could see the front of a one-story ranch with
+4 windows. Based on the home size, I estimated another 6 on the sides and
+back for a total around 10."
+Be direct. State what you saw. Name the total. Do not apologize for
+limitations — just name them.`;
+
+const OUTPUT_SCHEMA = {
+  type: 'json_schema',
+  schema: {
+    type: 'object',
+    properties: {
+      counts: {
+        type: 'object',
+        properties: {
+          single_hung_double_hung: { type: 'integer' },
+          picture: { type: 'integer' },
+          sliding: { type: 'integer' },
+          bay_bow: { type: 'integer' },
+          patio_door: { type: 'integer' },
+          other: { type: 'integer' },
+        },
+        required: ['single_hung_double_hung', 'picture', 'sliding', 'bay_bow', 'patio_door', 'other'],
+        additionalProperties: false,
+      },
+      total: { type: 'integer' },
+      narrative: { type: 'string' },
+      faces_observed: {
+        type: 'array',
+        items: { type: 'string' },
+      },
     },
-    confidence: ['low', 'medium', 'high'].includes(parsed?.confidence)
-      ? parsed.confidence
-      : 'low',
-    notes: Array.isArray(parsed?.notes) ? parsed.notes.slice(0, 5) : DEFAULT_RESPONSE.notes,
-  };
+    required: ['counts', 'total', 'narrative', 'faces_observed'],
+    additionalProperties: false,
+  },
 };
 
-async function runWithClaude(images, apiKey) {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: process.env.CLAUDE_MODEL || 'claude-3-5-sonnet-latest',
-      max_tokens: 1400,
-      system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: USER_PROMPT },
-            ...images.map(imageUrl => ({
-              type: 'image',
-              source: { type: 'url', url: imageUrl },
-            })),
-          ],
-        },
-      ],
-    }),
-  });
+const timeoutFetch = async (url, options = {}, timeoutMs = 10000) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+};
 
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(payload?.error?.message || 'Claude request failed.');
+const normalizeMediaType = contentType => {
+  if (!contentType || typeof contentType !== 'string') return 'image/jpeg';
+  const normalized = contentType.split(';')[0].trim().toLowerCase();
+  return normalized.startsWith('image/') ? normalized : 'image/jpeg';
+};
+
+const buildPropertyContextText = propertyData => {
+  const lines = [];
+  if (propertyData?.livingArea != null) lines.push(`Living area: ${propertyData.livingArea} sqft`);
+  if (propertyData?.yearBuilt != null) lines.push(`Year built: ${propertyData.yearBuilt}`);
+  if (propertyData?.homeType) lines.push(`Home type: ${propertyData.homeType}`);
+
+  if (lines.length === 0) {
+    return 'Count the windows and return your structured response.';
   }
 
-  const textBlock = Array.isArray(payload?.content)
-    ? payload.content.find(item => item?.type === 'text')
-    : null;
+  return `Property context:\n\n${lines.join('\n')}\n\nCount the windows and return your structured response.`;
+};
 
-  return extractJsonFromText(textBlock?.text || '');
-}
+const extractStructuredJson = content => {
+  if (!Array.isArray(content)) return null;
+  const jsonBlock = content.find(item => item?.type === 'output_json' && item?.json);
+  return jsonBlock?.json || null;
+};
 
-async function runWithOpenAI(images, apiKey) {
-  const response = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: process.env.OPENAI_WINDOW_MODEL || 'gpt-4.1-mini',
-      input: [
-        {
-          role: 'system',
-          content: [{ type: 'input_text', text: SYSTEM_PROMPT }],
-        },
-        {
-          role: 'user',
-          content: [
-            { type: 'input_text', text: USER_PROMPT },
-            ...images.map(imageUrl => ({
-              type: 'input_image',
-              image_url: imageUrl,
-              detail: 'high',
-            })),
-          ],
-        },
-      ],
-    }),
-  });
-
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(payload?.error?.message || 'OpenAI request failed.');
-  }
-
-  const rawText =
-    payload.output_text ||
-    payload.output?.flatMap(item => item.content || []).find(
-      item => item.type === 'output_text'
-    )?.text ||
-    '';
-
-  return extractJsonFromText(rawText);
-}
+const toNonNegativeInt = value => {
+  const num = Number(value);
+  if (!Number.isFinite(num) || num < 0) return 0;
+  return Math.round(num);
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -151,40 +122,122 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed.' });
   }
 
-  const images = Array.isArray(req.body?.images)
-    ? req.body.images.filter(Boolean)
-    : [];
-
-  if (images.length === 0) {
-    return res.status(400).json({ error: 'At least one image is required.' });
+  const anthropicKey = `${process.env.ANTHROPIC_API_KEY || ''}`.trim();
+  if (!anthropicKey) {
+    return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
   }
 
-  const claudeKey = process.env.CLAUDE_API_KEY || process.env.ANTHROPIC_API_KEY;
-  const openaiKey = process.env.OPENAI_API_KEY;
+  const inputImages = Array.isArray(req.body?.images) ? req.body.images.filter(Boolean) : [];
+  const images = inputImages.slice(0, 8);
+  const propertyData = req.body?.propertyData && typeof req.body.propertyData === 'object' ? req.body.propertyData : null;
+
+  if (images.length === 0) {
+    return res.status(200).json(MANUAL_FALLBACK);
+  }
+
+  const imageBlocks = [];
+
+  for (const imageUrl of images) {
+    try {
+      const response = await timeoutFetch(
+        imageUrl,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; LuitjensBot/1.0)',
+          },
+        },
+        10000,
+      );
+
+      if (!response.ok) {
+        console.error('[window-count] image fetch non-2xx', { imageUrl, status: response.status });
+        continue;
+      }
+
+      const mediaType = normalizeMediaType(response.headers.get('content-type'));
+      const bytes = await response.arrayBuffer();
+      const base64 = Buffer.from(bytes).toString('base64');
+
+      imageBlocks.push({
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: mediaType,
+          data: base64,
+        },
+      });
+    } catch (error) {
+      console.error('[window-count] image fetch failed', {
+        imageUrl,
+        error: error?.message,
+      });
+    }
+  }
+
+  if (imageBlocks.length === 0) {
+    return res.status(200).json(MANUAL_FALLBACK);
+  }
+
+  const anthropic = new Anthropic({ apiKey: anthropicKey });
+  const userContent = [
+    ...imageBlocks,
+    {
+      type: 'text',
+      text: buildPropertyContextText(propertyData),
+    },
+  ];
 
   try {
-    if (claudeKey) {
-      const result = await runWithClaude(images, claudeKey);
-      return res.status(200).json({ ...result, provider: 'claude', imageCount: images.length });
+    console.log('[window-count] model request', {
+      model: MODEL_NAME,
+      imagesSent: imageBlocks.length,
+    });
+
+    const response = await anthropic.messages.create({
+      model: MODEL_NAME,
+      max_tokens: 1024,
+      system: SYSTEM_PROMPT,
+      messages: [
+        {
+          role: 'user',
+          content: userContent,
+        },
+      ],
+      output_config: {
+        format: OUTPUT_SCHEMA,
+      },
+    });
+
+    const parsed = extractStructuredJson(response?.content);
+    if (!parsed) {
+      throw new Error('Structured output missing output_json block');
     }
 
-    if (openaiKey) {
-      const result = await runWithOpenAI(images, openaiKey);
-      return res.status(200).json({ ...result, provider: 'openai', imageCount: images.length });
-    }
+    const normalizedCounts = {
+      single_hung_double_hung: toNonNegativeInt(parsed?.counts?.single_hung_double_hung),
+      picture: toNonNegativeInt(parsed?.counts?.picture),
+      sliding: toNonNegativeInt(parsed?.counts?.sliding),
+      bay_bow: toNonNegativeInt(parsed?.counts?.bay_bow),
+      patio_door: toNonNegativeInt(parsed?.counts?.patio_door),
+      other: toNonNegativeInt(parsed?.counts?.other),
+    };
 
-    return res.status(500).json({
-      error: 'No vision model key is configured. Set CLAUDE_API_KEY (or ANTHROPIC_API_KEY) or OPENAI_API_KEY.',
+    const summedTotal = Object.values(normalizedCounts).reduce((sum, val) => sum + val, 0);
+
+    return res.status(200).json({
+      counts: normalizedCounts,
+      total: toNonNegativeInt(parsed?.total) || summedTotal,
+      narrative: `${parsed?.narrative || ''}`.trim(),
+      facesObserved: Array.isArray(parsed?.faces_observed) ? parsed.faces_observed : [],
+      imagesAnalyzed: imageBlocks.length,
+      model: MODEL_NAME,
     });
   } catch (error) {
-    return res.status(200).json({
-      ...DEFAULT_RESPONSE,
-      notes: [
-        ...(DEFAULT_RESPONSE.notes || []),
-        error.message || 'Vision analysis failed, falling back to manual input.',
-      ],
-      provider: claudeKey ? 'claude' : 'openai',
-      imageCount: images.length,
+    console.error('[window-count] anthropic error', {
+      model: MODEL_NAME,
+      message: error?.message,
     });
+
+    return res.status(200).json(MANUAL_FALLBACK);
   }
 }
