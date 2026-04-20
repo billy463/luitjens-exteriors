@@ -29,6 +29,8 @@ const emptyProgress = {
   builtRanges: false,
 };
 
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 function formatRange([low, high]) {
   return `$${low.toLocaleString()} - $${high.toLocaleString()}`;
 }
@@ -171,6 +173,8 @@ export default function WindowsLanding() {
     setAnalysisNotes([]);
     setStep(2);
 
+    const startedAt = Date.now();
+
     try {
       setProgress(current => ({ ...current, foundProperty: true }));
 
@@ -210,6 +214,11 @@ export default function WindowsLanding() {
         setManualMode(true);
       }
 
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < 2500) {
+        await wait(2500 - elapsed);
+      }
+
       setStep(3);
       setStatus({ type: 'idle', message: '' });
     } catch (error) {
@@ -218,6 +227,10 @@ export default function WindowsLanding() {
       setAnalysisNotes(['We could not confidently detect all window types from the listing photos.']);
       setProgress(current => ({ ...current, countedWindows: true, matchedPricing: true, builtRanges: true }));
       setStatus({ type: 'idle', message: '' });
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < 2500) {
+        await wait(2500 - elapsed);
+      }
       setStep(3);
     }
   };

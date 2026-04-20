@@ -1,15 +1,59 @@
+const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.avif'];
+
 const normalizeImageUrl = value => {
   if (!value || typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
 
-  if (value.startsWith('//')) {
-    return `https:${value}`;
+  if (trimmed.startsWith('//')) {
+    return `https:${trimmed}`;
   }
 
-  if (value.includes('{imageParameters}')) {
-    return `https:${value.replace('{imageParameters}', 'fit-in/1200x900/filters:quality(80)')}`;
+  if (trimmed.includes('{imageParameters}')) {
+    return `https:${trimmed.replace('{imageParameters}', 'fit-in/1400x1000/filters:quality(85)')}`;
   }
 
-  return value;
+  return trimmed;
+};
+
+const isLikelyPhoto = url => {
+  if (!url || typeof url !== 'string') return false;
+  const lower = url.toLowerCase();
+
+  const definitelyNotPhoto =
+    lower.includes('logo') ||
+    lower.includes('icon') ||
+    lower.includes('sprite') ||
+    lower.includes('avatar') ||
+    lower.includes('mapbox') ||
+    lower.includes('googleapis.com/maps') ||
+    lower.includes('streetview');
+  if (definitelyNotPhoto) return false;
+
+  if (IMAGE_EXTENSIONS.some(ext => lower.includes(ext))) return true;
+
+  return (
+    lower.includes('image') ||
+    lower.includes('photo') ||
+    lower.includes('photos') ||
+    lower.includes('hdp') ||
+    lower.includes('zillow') ||
+    lower.includes('listing')
+  );
+};
+
+const scorePhotoUrl = url => {
+  const lower = url.toLowerCase();
+  let score = 0;
+  if (lower.includes('cover')) score += 8;
+  if (lower.includes('hero')) score += 7;
+  if (lower.includes('main')) score += 6;
+  if (lower.includes('listing')) score += 5;
+  if (lower.includes('zillow')) score += 4;
+  if (lower.includes('photo')) score += 3;
+  if (lower.includes('image')) score += 2;
+  if (lower.includes('large') || lower.includes('hd')) score += 1;
+  return score;
 };
 
 const collectImages = input => {
@@ -32,12 +76,12 @@ const collectImages = input => {
         if (
           lowerKey.includes('image') ||
           lowerKey.includes('photo') ||
-          lowerKey === 'url' ||
-          lowerKey === 'src' ||
-          lowerKey === 'href'
+          lowerKey.includes('url') ||
+          lowerKey.includes('src') ||
+          lowerKey.includes('cover')
         ) {
           const normalized = normalizeImageUrl(current);
-          if (normalized) found.push(normalized);
+          if (normalized && isLikelyPhoto(normalized)) found.push(normalized);
         }
       } else {
         walk(current);
@@ -47,17 +91,12 @@ const collectImages = input => {
 
   walk(input);
 
-  return [...new Set(found)].filter(Boolean);
+  const unique = [...new Set(found)];
+  return unique.sort((a, b) => scorePhotoUrl(b) - scorePhotoUrl(a));
 };
 
-const fetchJson = async (url, apiKey) => {
-  const response = await fetch(url, {
-    headers: {
-      'x-realtyapi-key': apiKey,
-      Accept: 'application/json',
-    },
-  });
-
+const fetchJson = async (url, options = {}) => {
+  const response = await fetch(url, options);
   const text = await response.text();
   let payload = {};
 
@@ -81,24 +120,57 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Address is required.' });
   }
 
-  const apiKey = process.env.REALTY_API_KEY;
+  const apiKey = `${process.env.REALTY_API_KEY || ''}`.trim();
   if (!apiKey) {
     return res.status(500).json({ error: 'REALTY_API_KEY is not configured.' });
   }
 
   const encodedAddress = encodeURIComponent(address);
-  const endpoints = [
+
+  const attempts = [];
+
+  const legacyEndpoints = [
     `https://zillow.realtyapi.io/propimages?byaddress=${encodedAddress}`,
     `https://zillow.realtyapi.io/property_images?byaddress=${encodedAddress}`,
   ];
 
-  const attempts = [];
-
   try {
-    for (const url of endpoints) {
-      const { response, payload } = await fetchJson(url, apiKey);
-      const images = collectImages(payload);
+    const unified = await fetchJson(
+      `https://api.realtyapi.io/pro/byaddress?propertyaddress=${encodedAddress}`,
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          Accept: 'application/json',
+        },
+      },
+    );
 
+    const unifiedImages = collectImages(unified.payload);
+    attempts.push({
+      url: 'https://api.realtyapi.io/pro/byaddress',
+      status: unified.response.status,
+      imageCount: unifiedImages.length,
+    });
+
+    if (unified.response.ok && unifiedImages.length > 0) {
+      return res.status(200).json({
+        address,
+        images: unifiedImages,
+        imageCount: unifiedImages.length,
+        source: 'https://api.realtyapi.io/pro/byaddress',
+        attempts,
+      });
+    }
+
+    for (const url of legacyEndpoints) {
+      const { response, payload } = await fetchJson(url, {
+        headers: {
+          'x-realtyapi-key': apiKey,
+          Accept: 'application/json',
+        },
+      });
+
+      const images = collectImages(payload);
       attempts.push({
         url,
         status: response.status,
@@ -111,7 +183,7 @@ export default async function handler(req, res) {
           images,
           imageCount: images.length,
           source: url,
-          raw: payload,
+          attempts,
         });
       }
     }
