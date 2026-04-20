@@ -418,6 +418,14 @@ export default function WindowsLanding() {
               <div className="address-chip"><MapPin size={14} />{address.trim() || '1234 Forsyth Blvd'}</div>
             </div>
 
+            <div className="breakdown-preview-card">
+              <img
+                src={previewImage}
+                alt="Detected property preview"
+                className="breakdown-preview-image"
+              />
+            </div>
+
             <div className="narrative-card" role="status" aria-live="polite">
               <div className="narrative-label"><Eye size={14} />Here&apos;s what I found</div>
               <p className="narrative-text">{narrative || fallbackNarrative}</p>
