@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Check, MapPin, Minus, Phone, Plus } from 'lucide-react';
 import { trackLeadConversion, trackPhoneConversion } from '../lib/googleAds';
 import { trackMetaLead } from '../lib/metaPixel';
@@ -56,6 +56,7 @@ export default function WindowsLanding() {
   const [analysisConfidence, setAnalysisConfidence] = useState('low');
   const [analysisNotes, setAnalysisNotes] = useState([]);
   const [manualMode, setManualMode] = useState(false);
+  const addressInputRef = useRef(null);
 
   const totalWindows = useMemo(
     () => Object.values(counts).reduce((sum, count) => sum + count, 0),
@@ -92,6 +93,61 @@ export default function WindowsLanding() {
     setMeta('property', 'og:title', title);
     setMeta('property', 'og:description', description);
     setMeta('property', 'og:type', 'website');
+  }, []);
+
+  useEffect(() => {
+    const mapsKey =
+      import.meta.env.VITE_GOOGLE_MAPS_API_KEY ||
+      import.meta.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (!mapsKey || !addressInputRef.current) return;
+
+    let autocomplete;
+    let placeListener;
+    let detachedLoadListener = () => {};
+
+    const initAutocomplete = () => {
+      if (!window.google?.maps?.places || !addressInputRef.current) return;
+      autocomplete = new window.google.maps.places.Autocomplete(addressInputRef.current, {
+        componentRestrictions: { country: 'us' },
+        fields: ['formatted_address', 'name'],
+        types: ['address'],
+      });
+
+      placeListener = autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace?.();
+        const nextAddress = place?.formatted_address || place?.name || '';
+        if (nextAddress) setAddress(nextAddress);
+      });
+    };
+
+    if (window.google?.maps?.places) {
+      initAutocomplete();
+      return () => {
+        if (placeListener?.remove) placeListener.remove();
+      };
+    }
+
+    const existingScript = document.querySelector('script[data-google-maps-places="true"]');
+    const onScriptLoad = () => initAutocomplete();
+
+    if (existingScript) {
+      existingScript.addEventListener('load', onScriptLoad);
+      detachedLoadListener = () => existingScript.removeEventListener('load', onScriptLoad);
+    } else {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(mapsKey)}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.dataset.googleMapsPlaces = 'true';
+      script.addEventListener('load', onScriptLoad);
+      detachedLoadListener = () => script.removeEventListener('load', onScriptLoad);
+      document.head.appendChild(script);
+    }
+
+    return () => {
+      detachedLoadListener();
+      if (placeListener?.remove) placeListener.remove();
+    };
   }, []);
 
   const updateCount = (key, delta) => {
@@ -249,7 +305,15 @@ export default function WindowsLanding() {
             <form onSubmit={handleAddressStart}>
               <div className="form-group">
                 <label className="form-label">Street Address</label>
-                <input type="text" className="form-input" placeholder="1234 Forsyth Blvd, St. Louis, MO" value={address} onChange={event => setAddress(event.target.value)} />
+                <input
+                  ref={addressInputRef}
+                  type="text"
+                  className="form-input"
+                  placeholder="1234 Forsyth Blvd, St. Louis, MO"
+                  value={address}
+                  autoComplete="street-address"
+                  onChange={event => setAddress(event.target.value)}
+                />
               </div>
               <button className="cta-btn" type="submit" disabled={status.type === 'loading'}>
                 {status.type === 'loading' ? 'Finding Home...' : 'Find My Home'} <ArrowRight size={16} />
