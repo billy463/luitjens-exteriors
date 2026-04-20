@@ -499,21 +499,6 @@ export default function WindowsLanding() {
         </div>
       ) : null}
 
-      <div className="sticky-cta">
-        <a href={PHONE_HREF} onClick={trackPhoneConversion} className="sticky-call"><Phone size={20} /></a>
-        <a href={step < 4 ? '#' : '#'} className="sticky-main" onClick={event => {
-          event.preventDefault();
-          if (step === 1) return;
-          if (step === 2) return;
-          if (step === 3) setStep(4);
-          if (step === 4) {
-            document.querySelector('.phone-screen form button[type="submit"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-          if (step === 5) window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}>
-          {step < 4 ? 'Processing...' : 'Text Me My Ranges'} <ArrowRight size={15} />
-        </a>
-      </div>
     </div>
   );
 }
