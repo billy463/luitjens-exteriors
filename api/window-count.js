@@ -107,7 +107,16 @@ const buildPropertyContextText = propertyData => {
 const extractStructuredJson = content => {
   if (!Array.isArray(content)) return null;
   const jsonBlock = content.find(item => item?.type === 'output_json' && item?.json);
-  return jsonBlock?.json || null;
+  if (jsonBlock?.json) return jsonBlock.json;
+
+  const textBlock = content.find(item => item?.type === 'text' && typeof item?.text === 'string');
+  if (!textBlock?.text) return null;
+
+  try {
+    return JSON.parse(textBlock.text);
+  } catch {
+    return null;
+  }
 };
 
 const toNonNegativeInt = value => {

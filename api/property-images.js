@@ -64,16 +64,28 @@ const normalizePropertyObject = payload => {
   if (!payload || typeof payload !== 'object') return null;
   if (Array.isArray(payload)) return null;
 
-  if (Array.isArray(payload.responsivePhotos) || Array.isArray(payload.responsivePhotosOriginalRatio)) {
+  if (
+    Array.isArray(payload.responsivePhotos) ||
+    Array.isArray(payload.responsivePhotosOriginalRatio) ||
+    Array.isArray(payload.originalPhotos)
+  ) {
     return payload;
   }
 
-  const directCandidates = [payload.property, payload.zillow, payload.data, payload.result];
+  const directCandidates = [
+    payload.propertyDetails,
+    payload.property,
+    payload.zillow,
+    payload.data,
+    payload.result,
+  ];
   return directCandidates.find(
     candidate =>
       candidate &&
       typeof candidate === 'object' &&
-      (Array.isArray(candidate.responsivePhotos) || Array.isArray(candidate.responsivePhotosOriginalRatio)),
+      (Array.isArray(candidate.responsivePhotos) ||
+        Array.isArray(candidate.responsivePhotosOriginalRatio) ||
+        Array.isArray(candidate.originalPhotos)),
   ) || payload;
 };
 
@@ -156,6 +168,7 @@ export default async function handler(req, res) {
 
   const property = normalizePropertyObject(payload) || {};
   const photos =
+    (Array.isArray(property?.originalPhotos) && property.originalPhotos) ||
     (Array.isArray(property?.responsivePhotos) && property.responsivePhotos) ||
     (Array.isArray(property?.responsivePhotosOriginalRatio) && property.responsivePhotosOriginalRatio) ||
     [];
