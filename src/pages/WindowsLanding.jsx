@@ -76,6 +76,7 @@ export default function WindowsLanding() {
   const [analysisPulse, setAnalysisPulse] = useState(0);
   const [previewImage, setPreviewImage] = useState('/images/windows-landing-hero-house.jpg');
   const [images, setImages] = useState([]);
+  const [propertyData, setPropertyData] = useState(null);
   const addressInputRef = useRef(null);
 
   const totalWindows = useMemo(
@@ -215,11 +216,12 @@ export default function WindowsLanding() {
     });
     setNarrative(fallbackNarrative);
     setCounts(initialCounts);
+    setPropertyData(null);
     setStep(2);
 
     const startedAt = Date.now();
     let availableImages = [];
-    let propertyData = null;
+    let nextPropertyData = null;
 
     try {
       setProgress(current => ({ ...current, foundProperty: true }));
@@ -229,19 +231,20 @@ export default function WindowsLanding() {
 
       if (propertyResponse.ok) {
         availableImages = Array.isArray(propertyPayload.images) ? propertyPayload.images.filter(Boolean) : [];
-        propertyData = propertyPayload?.propertyData && typeof propertyPayload.propertyData === 'object'
+        nextPropertyData = propertyPayload?.propertyData && typeof propertyPayload.propertyData === 'object'
           ? propertyPayload.propertyData
           : null;
       }
 
       setImages(availableImages);
+      setPropertyData(nextPropertyData);
       if (availableImages[0]) setPreviewImage(availableImages[0]);
       setProgress(current => ({ ...current, pulledImages: true }));
 
       const countResponse = await fetch('/api/window-count', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ images: availableImages, propertyData }),
+        body: JSON.stringify({ images: availableImages, propertyData: nextPropertyData }),
       });
 
       const countPayload = await countResponse.json().catch(() => ({}));
@@ -304,6 +307,16 @@ export default function WindowsLanding() {
           address: address.trim(),
           phone: phone.trim(),
           source: '/windows-landing sms funnel',
+          counts: {
+            single_hung_double_hung: counts.single_hung_double_hung,
+            picture: counts.picture,
+            sliding: counts.sliding,
+            casement: counts.casement,
+            bay_bow: counts.bay_bow,
+            patio_door: counts.patio_door,
+          },
+          totalWindows,
+          propertyData: propertyData || null,
           details: `Window count estimate: ${totalWindows} (single/double-hung:${counts.single_hung_double_hung}, picture:${counts.picture}, sliding:${counts.sliding}, casement:${counts.casement}, bay/bow:${counts.bay_bow}, patio door:${counts.patio_door}), images analyzed: ${images.length}`,
         }),
       });
