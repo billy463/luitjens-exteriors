@@ -403,7 +403,7 @@ export default function WindowsLanding() {
               <img src={previewImage} alt="Property preview" className="property-preview-image" />
             </div>
             <h2 className="analyzing-title">Analyzing your home...</h2>
-            <p className="analyzing-sub">This takes about 3 minutes.</p>
+            <p className="analyzing-sub">Hang tight while we process your home details.</p>
             <div className="progress-list">
               {progressItems.map((item, idx) => (
                 <div key={item.label} className={`progress-item ${item.done ? 'done' : ''} ${analysisPulse === idx ? 'active' : ''}`}>
