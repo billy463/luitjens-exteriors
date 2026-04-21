@@ -1,5 +1,13 @@
 ﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Check, Eye, MapPin, Minus, Phone, Plus } from 'lucide-react';
+import {
+  BayBowIcon,
+  DoubleHungIcon,
+  OtherWindowIcon,
+  PictureIcon,
+  SlidingIcon,
+  SlidingPatioDoorIcon,
+} from '../components/WindowTypeIcons';
 import { trackLeadConversion, trackPhoneConversion } from '../lib/googleAds';
 import { trackMetaLead } from '../lib/metaPixel';
 import './WindowsLanding.css';
@@ -437,7 +445,7 @@ export default function WindowsLanding() {
                 <span className="sticker-badge sticker-confirm">Please confirm</span>
               </div>
               <div className="window-row">
-                <div className="window-type">Single / Double Hung<span className="window-type-hint">Standard vertical slider windows</span></div>
+                <div className="window-type-wrap"><div className="window-type-icon"><DoubleHungIcon size={30} color="#c4a66b" /></div><div className="window-type">Single / Double Hung<span className="window-type-hint">Standard vertical slider windows</span></div></div>
                 <div className="counter">
                   <button type="button" className="counter-btn" onClick={() => updateCount('single_hung_double_hung', -1)}><Minus size={14} /></button>
                   <input
@@ -453,7 +461,7 @@ export default function WindowsLanding() {
                 </div>
               </div>
               <div className="window-row">
-                <div className="window-type">Picture<span className="window-type-hint">Large fixed windows</span></div>
+                <div className="window-type-wrap"><div className="window-type-icon"><PictureIcon size={30} color="#c4a66b" /></div><div className="window-type">Picture<span className="window-type-hint">Large fixed windows</span></div></div>
                 <div className="counter">
                   <button type="button" className="counter-btn" onClick={() => updateCount('picture', -1)}><Minus size={14} /></button>
                   <input
@@ -469,7 +477,7 @@ export default function WindowsLanding() {
                 </div>
               </div>
               <div className="window-row">
-                <div className="window-type">Sliding<span className="window-type-hint">Horizontal sliding windows</span></div>
+                <div className="window-type-wrap"><div className="window-type-icon"><SlidingIcon size={30} color="#c4a66b" /></div><div className="window-type">Sliding<span className="window-type-hint">Horizontal sliding windows</span></div></div>
                 <div className="counter">
                   <button type="button" className="counter-btn" onClick={() => updateCount('sliding', -1)}><Minus size={14} /></button>
                   <input
@@ -485,7 +493,7 @@ export default function WindowsLanding() {
                 </div>
               </div>
               <div className="window-row">
-                <div className="window-type">Bay / Bow<span className="window-type-hint">Projected bay or bow windows</span></div>
+                <div className="window-type-wrap"><div className="window-type-icon"><BayBowIcon size={30} color="#c4a66b" /></div><div className="window-type">Bay / Bow<span className="window-type-hint">Projected bay or bow windows</span></div></div>
                 <div className="counter">
                   <button type="button" className="counter-btn" onClick={() => updateCount('bay_bow', -1)}><Minus size={14} /></button>
                   <input
@@ -501,7 +509,7 @@ export default function WindowsLanding() {
                 </div>
               </div>
               <div className="window-row">
-                <div className="window-type">Sliding Patio Door / French Doors<span className="window-type-hint">Confirm patio and exterior door glass units</span></div>
+                <div className="window-type-wrap"><div className="window-type-icon"><SlidingPatioDoorIcon size={30} color="#c4a66b" /></div><div className="window-type">Sliding Patio Door / French Doors<span className="window-type-hint">Confirm patio and exterior door glass units</span></div></div>
                 <div className="counter">
                   <button type="button" className="counter-btn" onClick={() => updateCount('patio_door', -1)}><Minus size={14} /></button>
                   <input
@@ -517,7 +525,7 @@ export default function WindowsLanding() {
                 </div>
               </div>
               <div className="window-row">
-                <div className="window-type">Other<span className="window-type-hint">Anything that doesn&apos;t fit the categories above</span></div>
+                <div className="window-type-wrap"><div className="window-type-icon"><OtherWindowIcon size={30} color="#c4a66b" /></div><div className="window-type">Other<span className="window-type-hint">Anything that doesn&apos;t fit the categories above</span></div></div>
                 <div className="counter">
                   <button type="button" className="counter-btn" onClick={() => updateCount('other', -1)}><Minus size={14} /></button>
                   <input

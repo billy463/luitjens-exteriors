@@ -722,6 +722,27 @@
   font-size: 15px;
 }
 
+.windows-landing-v2 .window-type-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.windows-landing-v2 .window-type-icon {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  color: var(--gold);
+  opacity: 0.95;
+}
+
+.windows-landing-v2 .window-type-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .windows-landing-v2 .window-type-hint {
   display: block;
   font-size: 11px;
