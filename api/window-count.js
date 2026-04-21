@@ -7,9 +7,9 @@ const MANUAL_FALLBACK = {
     single_hung_double_hung: 0,
     picture: 0,
     sliding: 0,
+    casement: 0,
     bay_bow: 0,
     patio_door: 0,
-    other: 0,
   },
   total: 0,
   narrative:
@@ -27,9 +27,15 @@ Count windows visible in the photos and classify by type:
 single_hung_double_hung: standard rectangular windows that slide vertically
 picture: large fixed windows that don't open
 sliding: horizontal sliding windows
+casement: side-hinged windows that crank outward
 bay_bow: bay or bow windows that project outward
 patio_door: sliding glass doors or French doors (back/side of house)
-other: anything that doesn't fit above
+
+Important patio_door counting rule:
+- Count unique patio/french door openings only.
+- Do NOT count left and right slider panels as two doors; that is one patio_door opening.
+- Do NOT add an extra patio_door when the same opening appears in both exterior and interior photos.
+- If unsure whether two images show the same opening, dedupe conservatively.
 
 Then estimate windows you cannot see (typically the back of the house) based
 on home size and typical layouts. Include these in your totals.
@@ -69,11 +75,11 @@ const OUTPUT_SCHEMA = {
           single_hung_double_hung: { type: 'integer' },
           picture: { type: 'integer' },
           sliding: { type: 'integer' },
+          casement: { type: 'integer' },
           bay_bow: { type: 'integer' },
           patio_door: { type: 'integer' },
-          other: { type: 'integer' },
         },
-        required: ['single_hung_double_hung', 'picture', 'sliding', 'bay_bow', 'patio_door', 'other'],
+        required: ['single_hung_double_hung', 'picture', 'sliding', 'casement', 'bay_bow', 'patio_door'],
         additionalProperties: false,
       },
       total: { type: 'integer' },
@@ -266,9 +272,9 @@ export default async function handler(req, res) {
       single_hung_double_hung: toNonNegativeInt(parsed?.counts?.single_hung_double_hung),
       picture: toNonNegativeInt(parsed?.counts?.picture),
       sliding: toNonNegativeInt(parsed?.counts?.sliding),
+      casement: toNonNegativeInt(parsed?.counts?.casement),
       bay_bow: toNonNegativeInt(parsed?.counts?.bay_bow),
       patio_door: toNonNegativeInt(parsed?.counts?.patio_door),
-      other: toNonNegativeInt(parsed?.counts?.other),
     };
 
     const summedTotal = Object.values(normalizedCounts).reduce((sum, val) => sum + val, 0);

@@ -40,6 +40,17 @@ export const SlidingIcon = ({ size = 32, color = 'currentColor' }) => (
   </svg>
 );
 
+export const CasementIcon = ({ size = 32, color = 'currentColor' }) => (
+  <svg {...baseProps(size, color)}>
+    <rect x="8" y="10" width="64" height="80" rx="2" />
+    <line x1="16" y1="18" x2="16" y2="82" strokeWidth="1.4" />
+    <rect x="16" y="18" width="50" height="64" rx="1" strokeWidth="1.4" />
+    <circle cx="22" cy="50" r="1.6" fill={color} />
+    <path d="M 68 50 L 75 46" strokeWidth="1.4" />
+    <path d="M 68 50 L 75 54" strokeWidth="1.4" />
+  </svg>
+);
+
 export const BayBowIcon = ({ size = 32, color = 'currentColor' }) => (
   <svg
     width={size}
@@ -94,4 +105,3 @@ export const OtherWindowIcon = ({ size = 32, color = 'currentColor' }) => (
     <line x1="36" y1="50" x2="44" y2="50" strokeWidth="1.4" />
   </svg>
 );
-

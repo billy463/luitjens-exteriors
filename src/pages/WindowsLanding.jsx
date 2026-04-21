@@ -2,8 +2,8 @@
 import { ArrowRight, Check, Eye, MapPin, Minus, Phone, Plus } from 'lucide-react';
 import {
   BayBowIcon,
+  CasementIcon,
   DoubleHungIcon,
-  OtherWindowIcon,
   PictureIcon,
   SlidingIcon,
   SlidingPatioDoorIcon,
@@ -23,9 +23,9 @@ const initialCounts = {
   single_hung_double_hung: 0,
   picture: 0,
   sliding: 0,
+  casement: 0,
   bay_bow: 0,
   patio_door: 0,
-  other: 0,
 };
 
 const perWindowRange = {
@@ -52,9 +52,9 @@ function sanitizeCounts(input = {}) {
     single_hung_double_hung: normalize('single_hung_double_hung'),
     picture: normalize('picture'),
     sliding: normalize('sliding'),
+    casement: normalize('casement'),
     bay_bow: normalize('bay_bow'),
     patio_door: normalize('patio_door'),
-    other: normalize('other'),
   };
 }
 
@@ -84,7 +84,7 @@ export default function WindowsLanding() {
   );
 
   const totalPricedUnits = useMemo(
-    () => counts.single_hung_double_hung + counts.picture + counts.sliding + counts.bay_bow + counts.other,
+    () => counts.single_hung_double_hung + counts.picture + counts.sliding + counts.casement + counts.bay_bow,
     [counts],
   );
 
@@ -304,7 +304,7 @@ export default function WindowsLanding() {
           address: address.trim(),
           phone: phone.trim(),
           source: '/windows-landing sms funnel',
-          details: `Window count estimate: ${totalWindows} (single/double-hung:${counts.single_hung_double_hung}, picture:${counts.picture}, sliding:${counts.sliding}, bay/bow:${counts.bay_bow}, patio door:${counts.patio_door}, other:${counts.other}), images analyzed: ${images.length}`,
+          details: `Window count estimate: ${totalWindows} (single/double-hung:${counts.single_hung_double_hung}, picture:${counts.picture}, sliding:${counts.sliding}, casement:${counts.casement}, bay/bow:${counts.bay_bow}, patio door:${counts.patio_door}), images analyzed: ${images.length}`,
         }),
       });
 
@@ -493,6 +493,22 @@ export default function WindowsLanding() {
                 </div>
               </div>
               <div className="window-row">
+                <div className="window-type-wrap"><div className="window-type-icon"><CasementIcon size={30} color="#c4a66b" /></div><div className="window-type">Casement<span className="window-type-hint">Side-hinged windows that crank outward</span></div></div>
+                <div className="counter">
+                  <button type="button" className="counter-btn" onClick={() => updateCount('casement', -1)}><Minus size={14} /></button>
+                  <input
+                    type="number"
+                    min="0"
+                    max="30"
+                    value={counts.casement}
+                    onChange={event => setCountValue('casement', event.target.value)}
+                    className="counter-input"
+                    aria-label="Casement window count"
+                  />
+                  <button type="button" className="counter-btn" onClick={() => updateCount('casement', 1)}><Plus size={14} /></button>
+                </div>
+              </div>
+              <div className="window-row">
                 <div className="window-type-wrap"><div className="window-type-icon"><BayBowIcon size={30} color="#c4a66b" /></div><div className="window-type">Bay / Bow<span className="window-type-hint">Projected bay or bow windows</span></div></div>
                 <div className="counter">
                   <button type="button" className="counter-btn" onClick={() => updateCount('bay_bow', -1)}><Minus size={14} /></button>
@@ -522,22 +538,6 @@ export default function WindowsLanding() {
                     aria-label="Patio and French door count"
                   />
                   <button type="button" className="counter-btn" onClick={() => updateCount('patio_door', 1)}><Plus size={14} /></button>
-                </div>
-              </div>
-              <div className="window-row">
-                <div className="window-type-wrap"><div className="window-type-icon"><OtherWindowIcon size={30} color="#c4a66b" /></div><div className="window-type">Other<span className="window-type-hint">Anything that doesn&apos;t fit the categories above</span></div></div>
-                <div className="counter">
-                  <button type="button" className="counter-btn" onClick={() => updateCount('other', -1)}><Minus size={14} /></button>
-                  <input
-                    type="number"
-                    min="0"
-                    max="30"
-                    value={counts.other}
-                    onChange={event => setCountValue('other', event.target.value)}
-                    className="counter-input"
-                    aria-label="Other window count"
-                  />
-                  <button type="button" className="counter-btn" onClick={() => updateCount('other', 1)}><Plus size={14} /></button>
                 </div>
               </div>
             </div>
