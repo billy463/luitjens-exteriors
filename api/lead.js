@@ -216,6 +216,30 @@ export function buildGhlPayload({ name, phone, email, address, totalWindows, pri
   };
 }
 
+async function postGhlWebhook(ghlWebhookUrl, ghlPayload) {
+  if (!ghlWebhookUrl) {
+    return { sent: false, skipped: true };
+  }
+
+  try {
+    const response = await fetch(ghlWebhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(ghlPayload),
+    });
+
+    if (!response.ok) {
+      console.error('[lead] ghl webhook returned non-2xx', response.status);
+      return { sent: false, status: response.status };
+    }
+
+    return { sent: true, status: response.status };
+  } catch (error) {
+    console.error('[lead] ghl webhook failed', error?.message || error);
+    return { sent: false, error: error?.message || String(error) };
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -245,14 +269,41 @@ export default async function handler(req, res) {
   const gmailAppPassword = requiredEnv('GMAIL_APP_PASSWORD');
   const notifyTo = requiredEnv('LEAD_NOTIFY_TO') || gmailUser;
   const notifyFrom = requiredEnv('LEAD_NOTIFY_FROM') || gmailUser;
+  const ghlWebhookUrl = requiredEnv('GHL_WEBHOOK_URL') || DEFAULT_GHL_WEBHOOK_URL;
 
-  if (!gmailUser || !gmailAppPassword || !notifyTo || !notifyFrom) {
+  if (!gmailUser && !ghlWebhookUrl) {
     return res.status(500).json({
-      error: 'Lead email notifications are not configured on the server.',
+      error: 'Lead notifications are not configured on the server.',
     });
   }
 
-  try {
+  const safeService = (service || 'windows').toString().trim() || 'windows';
+  const safeBrand = (brand || 'Not sure - help me decide').toString().trim() || 'Not sure - help me decide';
+  const safeSource = (source || '/windows hero form').toString().trim() || '/windows hero form';
+  const safeMessage = (message || details || '').toString().trim();
+  const safeEmail = (email || '').toString().trim();
+  const submittedAt = new Date().toISOString();
+  const safeCounts = normalizeCounts(counts);
+  const safeTotalWindows = normalizeCount(totalWindows) || sumCounts(safeCounts);
+  const pricing = computeManufacturerPricing({
+    counts: safeCounts,
+    totalWindows: safeTotalWindows,
+    propertyData,
+  });
+  const ghlPayload = buildGhlPayload({
+    name,
+    phone,
+    email: safeEmail,
+    address,
+    totalWindows: safeTotalWindows,
+    pricing,
+    source: safeSource,
+  });
+
+  let emailSent = false;
+  let emailError = '';
+
+  if (gmailUser && gmailAppPassword && notifyTo && notifyFrom) {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -261,100 +312,79 @@ export default async function handler(req, res) {
       },
     });
 
-    const safeService = (service || 'windows').toString().trim() || 'windows';
-    const safeBrand = (brand || 'Not sure - help me decide').toString().trim() || 'Not sure - help me decide';
-    const safeSource = (source || '/windows hero form').toString().trim() || '/windows hero form';
-    const safeMessage = (message || details || '').toString().trim();
-    const safeEmail = (email || '').toString().trim();
-    const submittedAt = new Date().toISOString();
-    const safeCounts = normalizeCounts(counts);
-    const safeTotalWindows = normalizeCount(totalWindows) || sumCounts(safeCounts);
-    const pricing = computeManufacturerPricing({
-      counts: safeCounts,
-      totalWindows: safeTotalWindows,
-      propertyData,
-    });
-
     const subject = `New ${safeService} Lead (${safeBrand}): ${name} (${phone})`;
 
-    await transporter.sendMail({
-      from: notifyFrom,
-      to: notifyTo,
-      replyTo: safeEmail || undefined,
-      subject,
-      text: [
-        `New ${safeService} lead submitted`,
-        '',
-        `Service: ${safeService}`,
-        `Brand: ${safeBrand}`,
-        `Source: ${safeSource}`,
-        `Name: ${name}`,
-        `Phone: ${phone}`,
-        `Email: ${safeEmail || 'N/A'}`,
-        `Address: ${address}`,
-        `Message: ${safeMessage || 'N/A'}`,
-        `Submitted At (UTC): ${submittedAt}`,
-      ].join('\n'),
-      html: `
-        <h2>New ${escapeHtml(safeService)} Lead</h2>
-        <p><strong>Service:</strong> ${escapeHtml(safeService)}</p>
-        <p><strong>Brand:</strong> ${escapeHtml(safeBrand)}</p>
-        <p><strong>Source:</strong> ${escapeHtml(safeSource)}</p>
-        <p><strong>Name:</strong> ${escapeHtml(name)}</p>
-        <p><strong>Phone:</strong> ${escapeHtml(phone)}</p>
-        <p><strong>Email:</strong> ${escapeHtml(safeEmail || 'N/A')}</p>
-        <p><strong>Address:</strong> ${escapeHtml(address)}</p>
-        <p><strong>Message:</strong> ${escapeHtml(safeMessage || 'N/A')}</p>
-        <p><strong>Submitted At (UTC):</strong> ${escapeHtml(submittedAt)}</p>
-      `,
-    });
-
-    const ghlWebhookUrl = requiredEnv('GHL_WEBHOOK_URL') || DEFAULT_GHL_WEBHOOK_URL;
-    if (ghlWebhookUrl) {
-      const ghlPayload = buildGhlPayload({
-        name,
-        phone,
-        email: safeEmail,
-        address,
-        totalWindows: safeTotalWindows,
-        pricing,
-        source: safeSource,
+    try {
+      await transporter.sendMail({
+        from: notifyFrom,
+        to: notifyTo,
+        replyTo: safeEmail || undefined,
+        subject,
+        text: [
+          `New ${safeService} lead submitted`,
+          '',
+          `Service: ${safeService}`,
+          `Brand: ${safeBrand}`,
+          `Source: ${safeSource}`,
+          `Name: ${name}`,
+          `Phone: ${phone}`,
+          `Email: ${safeEmail || 'N/A'}`,
+          `Address: ${address}`,
+          `Message: ${safeMessage || 'N/A'}`,
+          `Submitted At (UTC): ${submittedAt}`,
+        ].join('\n'),
+        html: `
+          <h2>New ${escapeHtml(safeService)} Lead</h2>
+          <p><strong>Service:</strong> ${escapeHtml(safeService)}</p>
+          <p><strong>Brand:</strong> ${escapeHtml(safeBrand)}</p>
+          <p><strong>Source:</strong> ${escapeHtml(safeSource)}</p>
+          <p><strong>Name:</strong> ${escapeHtml(name)}</p>
+          <p><strong>Phone:</strong> ${escapeHtml(phone)}</p>
+          <p><strong>Email:</strong> ${escapeHtml(safeEmail || 'N/A')}</p>
+          <p><strong>Address:</strong> ${escapeHtml(address)}</p>
+          <p><strong>Message:</strong> ${escapeHtml(safeMessage || 'N/A')}</p>
+          <p><strong>Submitted At (UTC):</strong> ${escapeHtml(submittedAt)}</p>
+        `,
       });
-
-      try {
-        const ghlResponse = await fetch(ghlWebhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(ghlPayload),
-        });
-
-        if (!ghlResponse.ok) {
-          console.error('[lead] ghl webhook returned non-2xx', ghlResponse.status);
-        }
-      } catch (error) {
-        console.error('[lead] ghl webhook failed', error?.message || error);
-      }
+      emailSent = true;
+    } catch (error) {
+      emailError = error?.message || String(error);
+      console.error('[lead] email notification failed', emailError);
     }
+  } else {
+    emailError = 'Lead email notifications are not configured on the server.';
+    console.error('[lead] email notification skipped', emailError);
+  }
 
-    return res.status(200).json({
-      ok: true,
-      receivedAt: submittedAt,
-      lead: {
-        service: safeService,
-        brand: safeBrand,
-        source: safeSource,
-        name,
-        phone,
-        email: safeEmail,
-        address,
-        message: safeMessage,
-      },
-      pricing,
-    });
-  } catch (error) {
-    console.error('[lead] email notification failed', error?.message || error);
+  const ghlResult = await postGhlWebhook(ghlWebhookUrl, ghlPayload);
+
+  if (!emailSent && !ghlResult.sent) {
     return res.status(500).json({
-      error: 'Unable to send lead notification email right now.',
+      error: 'Unable to send lead notification right now.',
     });
   }
+
+  const response = {
+    ok: true,
+    receivedAt: submittedAt,
+    lead: {
+      service: safeService,
+      brand: safeBrand,
+      source: safeSource,
+      name,
+      phone,
+      email: safeEmail,
+      address,
+      message: safeMessage,
+    },
+    pricing,
+    emailSent,
+    ghlWebhookSent: ghlResult.sent,
+  };
+
+  if (!emailSent) {
+    response.warning = 'Lead was received and sent to SMS automation, but email notification failed.';
+  }
+
+  return res.status(200).json(response);
 }
