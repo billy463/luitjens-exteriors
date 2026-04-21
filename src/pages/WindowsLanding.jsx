@@ -435,8 +435,10 @@ export default function WindowsLanding() {
             </div>
 
             <div className="narrative-card" role="status" aria-live="polite">
-              <span className="sticker-badge sticker-warning">Not 100% accurate</span>
-              <div className="narrative-label"><Eye size={14} />Here&apos;s what I found</div>
+              <div className="narrative-header">
+                <div className="narrative-label"><Eye size={14} />Here&apos;s what I found</div>
+                <span className="sticker-badge sticker-warning">Not 100% accurate</span>
+              </div>
               <p className="narrative-text">{narrative || fallbackNarrative}</p>
             </div>
 
