@@ -3,7 +3,7 @@ import { trackPhoneConversion } from '../lib/googleAds';
 
 export default function ContactForm() {
   return (
-    <section id="contact" className="py-24 bg-dark border-t border-gray-800">
+    <section id="contact" data-phone-collecting-form="true" className="py-24 bg-dark border-t border-gray-800">
       <div className="container mx-auto px-4 md:px-6 max-w-6xl">
         <div className="bg-darker rounded-3xl shadow-2xl overflow-hidden shadow-dark/50 border border-gray-800">
           <div className="flex flex-col lg:flex-row">
