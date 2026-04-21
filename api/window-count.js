@@ -161,6 +161,20 @@ const toNonNegativeInt = value => {
   return Math.round(num);
 };
 
+const shouldClampPatioDoorCount = ({ patioDoorCount, narrativeText, facesObserved, imagesAnalyzed }) => {
+  if (patioDoorCount <= 1) return false;
+
+  const text = `${narrativeText || ''} ${(Array.isArray(facesObserved) ? facesObserved.join(' ') : '')}`.toLowerCase();
+  const hasInteriorSignal =
+    text.includes('interior') ||
+    text.includes('inside') ||
+    text.includes('from inside') ||
+    text.includes('indoor');
+
+  // Conservative safety rule to prevent common double-counting of a single slider opening.
+  return hasInteriorSignal || imagesAnalyzed <= 3;
+};
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -277,12 +291,24 @@ export default async function handler(req, res) {
       patio_door: toNonNegativeInt(parsed?.counts?.patio_door),
     };
 
-    const summedTotal = Object.values(normalizedCounts).reduce((sum, val) => sum + val, 0);
-
     let narrativeText = `${parsed?.narrative || ''}`.trim();
     if (!narrativeText) {
       narrativeText = MANUAL_FALLBACK.narrative;
     }
+
+    const facesObserved = Array.isArray(parsed?.faces_observed) ? parsed.faces_observed : [];
+    if (
+      shouldClampPatioDoorCount({
+        patioDoorCount: normalizedCounts.patio_door,
+        narrativeText,
+        facesObserved,
+        imagesAnalyzed: imageBlocks.length,
+      })
+    ) {
+      normalizedCounts.patio_door = 1;
+    }
+
+    const summedTotal = Object.values(normalizedCounts).reduce((sum, val) => sum + val, 0);
 
     if (canDoPropertyOnlyEstimate) {
       const fallbackLead = "We couldn't find enough listing photos of your home, so I estimated from your property details.";
@@ -301,7 +327,7 @@ export default async function handler(req, res) {
       counts: normalizedCounts,
       total: toNonNegativeInt(parsed?.total) || summedTotal,
       narrative: narrativeText,
-      facesObserved: Array.isArray(parsed?.faces_observed) ? parsed.faces_observed : [],
+      facesObserved,
       imagesAnalyzed: imageBlocks.length,
       model: MODEL_NAME,
     });
