@@ -590,6 +590,9 @@ export default function WindowsLanding() {
               <button className="cta-btn" type="submit" disabled={status.type === 'loading'}>
                 {status.type === 'loading' ? 'Sending...' : 'Text Me My Ranges'} <ArrowRight size={16} />
               </button>
+              <p className="mt-3 text-xs leading-relaxed text-gray-400">
+                By submitting this form, you consent to receive text messages from Luitjens Exteriors LLC at the phone number provided, including messages about your inquiry and service updates. Msg frequency varies. Msg &amp; data rates may apply. Reply STOP to unsubscribe, HELP for help. See our <a href="/privacy-policy" className="landing-legal-link">Privacy Policy</a> for details.
+              </p>
               <p className="cta-fineprint">Free. No sales calls unless you ask.</p>
               {status.message ? (
                 <p className={`status ${status.type === 'success' ? 'status-success' : 'status-error'}`}>{status.message}</p>
