@@ -321,13 +321,19 @@ export default async function handler(req, res) {
         source: safeSource,
       });
 
-      fetch(ghlWebhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(ghlPayload),
-      }).catch(error => {
+      try {
+        const ghlResponse = await fetch(ghlWebhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(ghlPayload),
+        });
+
+        if (!ghlResponse.ok) {
+          console.error('[lead] ghl webhook returned non-2xx', ghlResponse.status);
+        }
+      } catch (error) {
         console.error('[lead] ghl webhook failed', error?.message || error);
-      });
+      }
     }
 
     return res.status(200).json({
