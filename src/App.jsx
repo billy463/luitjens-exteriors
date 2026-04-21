@@ -23,7 +23,7 @@ const GHL_WIDGET_ID = '69e6e3741024ff61765950bf';
 const GHL_SCRIPT_ID = 'go-high-level-chat-widget';
 const GHL_SCRIPT_SRC = 'https://widgets.leadconnectorhq.com/loader.js';
 const GHL_RESOURCES_URL = 'https://widgets.leadconnectorhq.com/chat-widget/loader.js';
-const CHAT_WIDGET_BLOCKED_PATHS = ['/', '/windows-landing', '/window-landing'];
+const CHAT_WIDGET_BLOCKED_PATHS = ['/windows-landing', '/window-landing'];
 
 const removeGoHighLevelWidget = () => {
   document.getElementById(GHL_SCRIPT_ID)?.remove();

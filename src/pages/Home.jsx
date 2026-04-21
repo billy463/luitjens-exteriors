@@ -1,7 +1,5 @@
 import { ArrowRight, ShieldCheck, Wrench, Umbrella } from 'lucide-react';
-import { motion } from 'framer-motion';
 import Services from '../components/Services';
-import ContactForm from '../components/ContactForm';
 
 export default function Home() {
   return (
@@ -21,12 +19,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-darker to-dark/50 opacity-80 z-10" />
         
         <div className="container mx-auto px-4 md:px-6 relative z-20">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-3xl"
-          >
+          <div className="max-w-3xl">
             <h1 className="text-4xl md:text-6xl font-extrabold text-white leading-tight mb-6 hidden md:block">
               Your Complete <span className="text-primary">Exterior Renovation</span> Solution
             </h1>
@@ -44,7 +37,7 @@ export default function Home() {
                 Our Services
               </a>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -83,7 +76,29 @@ export default function Home() {
 
       <Services />
 
-      <ContactForm />
+      <section id="contact" className="py-24 bg-dark border-t border-gray-800">
+        <div className="container mx-auto px-4 md:px-6 max-w-4xl text-center">
+          <p className="text-sm font-bold text-primary uppercase tracking-widest mb-3">Start Here</p>
+          <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-6">
+            Ready for Your Free Inspection?
+          </h2>
+          <p className="text-lg md:text-xl text-gray-300 leading-relaxed mb-8">
+            Use the chat button on this page to tell us about your project, ask a question, or request a quote.
+            You can also call us directly at{' '}
+            <a href="tel:+13148820973" className="text-primary hover:text-white transition">
+              (314) 882-0973
+            </a>.
+          </p>
+          <div className="rounded-2xl border border-gray-800 bg-darker p-8 text-left shadow-2xl shadow-dark/50">
+            <h3 className="text-2xl font-bold text-white mb-4">What happens next?</h3>
+            <ul className="space-y-3 text-gray-400 leading-relaxed">
+              <li>Tell us what exterior project you have in mind.</li>
+              <li>We will review your details and help schedule a convenient inspection.</li>
+              <li>You get honest guidance, clear scope, and no high-pressure sales pitch.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
 
     </div>
   );
