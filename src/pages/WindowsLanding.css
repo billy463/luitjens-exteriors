@@ -623,6 +623,7 @@
   border: 1px solid rgba(244, 241, 236, 0.14);
   border-radius: 14px;
   padding: 16px;
+  position: relative;
 }
 
 .windows-landing-v2 .narrative-label {
@@ -665,6 +666,43 @@
   border-radius: 16px;
   padding: 8px 20px;
   margin: 22px 0;
+  position: relative;
+}
+
+.windows-landing-v2 .window-list-header {
+  display: flex;
+  justify-content: flex-end;
+  margin: 4px 0 2px;
+}
+
+.windows-landing-v2 .sticker-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  line-height: 1;
+}
+
+.windows-landing-v2 .sticker-warning {
+  position: absolute;
+  top: -10px;
+  right: 12px;
+  background: rgba(196, 166, 107, 0.14);
+  border-color: rgba(196, 166, 107, 0.52);
+  color: #edd8aa;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+}
+
+.windows-landing-v2 .sticker-confirm {
+  background: rgba(127, 183, 126, 0.15);
+  border-color: rgba(127, 183, 126, 0.52);
+  color: #ccebc9;
 }
 
 .windows-landing-v2 .window-row {

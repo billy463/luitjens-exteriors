@@ -427,11 +427,15 @@ export default function WindowsLanding() {
             </div>
 
             <div className="narrative-card" role="status" aria-live="polite">
+              <span className="sticker-badge sticker-warning">Not 100% accurate</span>
               <div className="narrative-label"><Eye size={14} />Here&apos;s what I found</div>
               <p className="narrative-text">{narrative || fallbackNarrative}</p>
             </div>
 
             <div className="window-list">
+              <div className="window-list-header">
+                <span className="sticker-badge sticker-confirm">Please confirm</span>
+              </div>
               <div className="window-row">
                 <div className="window-type">Single / Double Hung<span className="window-type-hint">Standard vertical slider windows</span></div>
                 <div className="counter">
