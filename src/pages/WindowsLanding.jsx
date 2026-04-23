@@ -28,16 +28,56 @@ const initialCounts = {
   patio_door: 0,
 };
 
-const perWindowRange = {
-  wincore: [600, 800],
-  simonton: [800, 1100],
-  pella: [1200, 1650],
+const pricingMatrix = {
+  wincore: {
+    label: 'Wincore',
+    windowTypes: {
+      single_hung_double_hung: { low: 950, high: 1350 },
+      picture: { low: 1000, high: 1250 },
+      sliding: { low: 950, high: 1250 },
+      casement: { low: 1050, high: 1300 },
+      bay_bow: { low: 1650, high: 2200 },
+      patio_door: { low: 3300, high: 4400 },
+    },
+  },
+  simonton: {
+    label: 'Simonton',
+    windowTypes: {
+      single_hung_double_hung: { low: 1150, high: 1550 },
+      picture: { low: 1200, high: 1450 },
+      sliding: { low: 1150, high: 1450 },
+      casement: { low: 1250, high: 1500 },
+      bay_bow: { low: 1850, high: 2400 },
+      patio_door: { low: 3500, high: 4600 },
+    },
+  },
+  pella: {
+    label: 'Pella',
+    windowTypes: {
+      single_hung_double_hung: { low: 1350, high: 1550 },
+      picture: { low: 1200, high: 1500 },
+      sliding: { low: 1350, high: 1700 },
+      casement: { low: 1600, high: 2100 },
+      bay_bow: { low: 2850, high: 3950 },
+      patio_door: { low: 5950, high: 8500 },
+    },
+  },
 };
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 function formatRange([low, high]) {
   return `$${low.toLocaleString()} - $${high.toLocaleString()}`;
+}
+
+function calculateBrandRange(brandPricing, counts) {
+  return Object.entries(brandPricing.windowTypes).reduce(
+    ([lowTotal, highTotal], [type, range]) => {
+      const quantity = counts[type] || 0;
+      return [lowTotal + range.low * quantity, highTotal + range.high * quantity];
+    },
+    [0, 0],
+  );
 }
 
 function sanitizeCounts(input = {}) {
@@ -82,18 +122,15 @@ export default function WindowsLanding() {
     [counts],
   );
 
-  const totalPricedUnits = useMemo(
-    () => counts.single_hung_double_hung + counts.picture + counts.sliding + counts.casement + counts.bay_bow,
-    [counts],
-  );
-
   const priceRanges = useMemo(
-    () => ({
-      wincore: [perWindowRange.wincore[0] * totalPricedUnits, perWindowRange.wincore[1] * totalPricedUnits],
-      simonton: [perWindowRange.simonton[0] * totalPricedUnits, perWindowRange.simonton[1] * totalPricedUnits],
-      pella: [perWindowRange.pella[0] * totalPricedUnits, perWindowRange.pella[1] * totalPricedUnits],
-    }),
-    [totalPricedUnits],
+    () =>
+      Object.fromEntries(
+        Object.entries(pricingMatrix).map(([brandKey, brandPricing]) => [
+          brandKey,
+          calculateBrandRange(brandPricing, counts),
+        ]),
+      ),
+    [counts],
   );
 
   useEffect(() => {
