@@ -16,17 +16,23 @@ import GoogleAdsTag from './components/GoogleAdsTag';
 import MetaPixelTracker from './components/MetaPixelTracker';
 import { trackPhoneConversion } from './lib/googleAds';
 
+function getLandingVariant(pathname) {
+  const normalizedPath = pathname.replace(/\/+$/, '') || '/';
+  if (normalizedPath === '/may-discount') return 'mayDiscount';
+  if (normalizedPath === '/speed-pricing') return 'speedPricing';
+  if (normalizedPath === '/windows-landing' || normalizedPath === '/window-landing') return 'default';
+  return null;
+}
+
 function AppShell() {
   const location = useLocation();
-  const normalizedPath = location.pathname.replace(/\/+$/, '') || '/';
-  const isLandingPage =
-    normalizedPath === '/windows-landing' || normalizedPath === '/window-landing';
+  const landingVariant = getLandingVariant(location.pathname);
 
-  if (isLandingPage) {
+  if (landingVariant) {
     return (
       <div className="flex flex-col min-h-screen bg-dark text-white font-sans">
         <main className="flex-grow">
-          <WindowsLanding />
+          <WindowsLanding variant={landingVariant} />
         </main>
       </div>
     );

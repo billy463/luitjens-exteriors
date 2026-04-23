@@ -19,6 +19,24 @@ const MIN_ANALYZE_MS = 15000;
 const fallbackNarrative =
   "We couldn't get a clear look at your home from public photos. No problem - just enter your window counts below and we'll take it from there.";
 
+const heroCopy = {
+  default: {
+    title: 'Lower your energy bills',
+    accent: 'with the right windows.',
+    lead: "New energy-efficient windows can cut your home's indoor temperature swing by 2-5 degrees and save hundreds on utility bills. See what it costs for your house in about 3 minutes.",
+  },
+  mayDiscount: {
+    title: '$1,000 off. 5 windows or more.',
+    accent: 'Booked this month.',
+    lead: "See your real pricing in about 3 minutes. If your quote covers 5+ windows, the $1,000 comes off the top - you'll see it as a line item before you ever talk to us.",
+  },
+  speedPricing: {
+    title: 'Window pricing,',
+    accent: 'without the window salesman.',
+    lead: "Real numbers. Texted to your phone. Type your address. We'll count your windows from satellite imagery and send you an honest price range - the same range we'd quote you in person.",
+  },
+};
+
 const initialCounts = {
   single_hung_double_hung: 0,
   picture: 0,
@@ -97,7 +115,8 @@ function sanitizeCounts(input = {}) {
   };
 }
 
-export default function WindowsLanding() {
+export default function WindowsLanding({ variant = 'default' }) {
+  const currentHero = heroCopy[variant] || heroCopy.default;
   const [step, setStep] = useState(1);
   const [address, setAddress] = useState('');
   const [name, setName] = useState('');
@@ -380,9 +399,9 @@ export default function WindowsLanding() {
 
           <section className="hero">
             <span className="eyebrow">St. Louis Homeowners</span>
-            <h1>Lower your energy bills <span className="accent">with the right windows.</span></h1>
+            <h1>{currentHero.title} <span className="accent">{currentHero.accent}</span></h1>
             <p className="hero-lead">
-              New energy-efficient windows can cut your home&apos;s indoor temperature swing by 2-5 degrees and save hundreds on utility bills. See what it costs for your house in about 3 minutes.
+              {currentHero.lead}
             </p>
             <div className="trust-row">
               <div className="trust-item"><div className="trust-dot" />10+ Years in St. Louis</div>
