@@ -32,7 +32,6 @@ const perWindowRange = {
   wincore: [600, 800],
   simonton: [800, 1100],
   pella: [1200, 1650],
-  andersen: [1400, 1900],
 };
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -93,7 +92,6 @@ export default function WindowsLanding() {
       wincore: [perWindowRange.wincore[0] * totalPricedUnits, perWindowRange.wincore[1] * totalPricedUnits],
       simonton: [perWindowRange.simonton[0] * totalPricedUnits, perWindowRange.simonton[1] * totalPricedUnits],
       pella: [perWindowRange.pella[0] * totalPricedUnits, perWindowRange.pella[1] * totalPricedUnits],
-      andersen: [perWindowRange.andersen[0] * totalPricedUnits, perWindowRange.andersen[1] * totalPricedUnits],
     }),
     [totalPricedUnits],
   );
@@ -299,7 +297,6 @@ export default function WindowsLanding() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           service: 'windows',
-          brand: 'Not sure - help me decide',
           name: name.trim(),
           address: address.trim(),
           phone: phone.trim(),
@@ -565,7 +562,7 @@ export default function WindowsLanding() {
           <section className="phone-screen">
             <div className="breakdown-kicker">Step 3 of 3 - Last Step</div>
             <h2 className="phone-heading">Where should we <span className="accent">text your ranges?</span></h2>
-            <p className="phone-intro">We built a custom price range for your home across 4 brands. Drop your number and we&apos;ll text it over in under a minute.</p>
+            <p className="phone-intro">We built a custom price range for your home across 3 brands. Drop your number and we&apos;ll text it over in under a minute.</p>
             <div className="preview-card">
               <div className="preview-header">You&apos;ll receive a text with:</div>
               <div className="preview-item"><div className="preview-check" /><span>Your project range with all-in pricing</span></div>
@@ -574,7 +571,6 @@ export default function WindowsLanding() {
                 <span className="brand-pill">Wincore</span>
                 <span className="brand-pill">Simonton</span>
                 <span className="brand-pill">Pella</span>
-                <span className="brand-pill">Andersen</span>
               </div>
               <div className="preview-item"><div className="preview-check" /><span>What similar St. Louis homes actually paid</span></div>
             </div>
@@ -619,7 +615,6 @@ export default function WindowsLanding() {
                 <div className="sms-price-line"><span className="sms-brand-label">Wincore</span><span className="sms-brand-price">{formatRange(priceRanges.wincore)}</span></div>
                 <div className="sms-price-line"><span className="sms-brand-label">Simonton ?</span><span className="sms-brand-price">{formatRange(priceRanges.simonton)}</span></div>
                 <div className="sms-price-line"><span className="sms-brand-label">Pella</span><span className="sms-brand-price">{formatRange(priceRanges.pella)}</span></div>
-                <div className="sms-price-line"><span className="sms-brand-label">Andersen</span><span className="sms-brand-price">{formatRange(priceRanges.andersen)}</span></div>
               </div>
               <div className="sms-bubble">Want me to verify the count in person and lock in a final number? Reply YES and I&apos;ll text times. - Alexis</div>
             </div>

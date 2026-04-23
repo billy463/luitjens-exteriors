@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { name, phone, email, address, message, brand, service, source } = req.body || {};
+  const { name, phone, email, address, message, service, source } = req.body || {};
 
   if (!name || !phone || !address) {
     return res.status(400).json({ error: 'Missing required fields.' });
@@ -47,13 +47,12 @@ export default async function handler(req, res) {
     });
 
     const safeService = (service || 'windows').toString().trim() || 'windows';
-    const safeBrand = (brand || 'Not sure - help me decide').toString().trim() || 'Not sure - help me decide';
     const safeSource = (source || '/windows hero form').toString().trim() || '/windows hero form';
     const safeMessage = (message || '').toString().trim();
     const safeEmail = (email || '').toString().trim();
     const submittedAt = new Date().toISOString();
 
-    const subject = `New ${safeService} Lead (${safeBrand}): ${name} (${phone})`;
+    const subject = `New ${safeService} Lead: ${name} (${phone})`;
 
     await transporter.sendMail({
       from: notifyFrom,
@@ -64,7 +63,6 @@ export default async function handler(req, res) {
         `New ${safeService} lead submitted`,
         '',
         `Service: ${safeService}`,
-        `Brand: ${safeBrand}`,
         `Source: ${safeSource}`,
         `Name: ${name}`,
         `Phone: ${phone}`,
@@ -76,7 +74,6 @@ export default async function handler(req, res) {
       html: `
         <h2>New ${escapeHtml(safeService)} Lead</h2>
         <p><strong>Service:</strong> ${escapeHtml(safeService)}</p>
-        <p><strong>Brand:</strong> ${escapeHtml(safeBrand)}</p>
         <p><strong>Source:</strong> ${escapeHtml(safeSource)}</p>
         <p><strong>Name:</strong> ${escapeHtml(name)}</p>
         <p><strong>Phone:</strong> ${escapeHtml(phone)}</p>
@@ -92,7 +89,6 @@ export default async function handler(req, res) {
       receivedAt: submittedAt,
       lead: {
         service: safeService,
-        brand: safeBrand,
         source: safeSource,
         name,
         phone,
