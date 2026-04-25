@@ -99,6 +99,14 @@ function calculateBrandRange(brandPricing, counts) {
   );
 }
 
+function pluralize(count, singular, plural = `${singular}s`) {
+  return count === 1 ? singular : plural;
+}
+function formatCountSummary(windowCount, doorCount) {
+  const windowText = `${windowCount} ${pluralize(windowCount, 'window')}`;
+  if (!doorCount) return windowText;
+  return `${windowText} & ${doorCount} ${pluralize(doorCount, 'Door')}`;
+}
 function sanitizeCounts(input = {}) {
   const normalize = key => {
     const num = Number(input?.[key]);
@@ -138,9 +146,17 @@ export default function WindowsLanding({ variant = 'default' }) {
   const addressInputRef = useRef(null);
 
   const totalWindows = useMemo(
-    () => Object.values(counts).reduce((sum, count) => sum + count, 0),
+    () => counts.single_hung_double_hung + counts.picture + counts.sliding + counts.casement + counts.bay_bow,
     [counts],
   );
+
+  const totalDoors = useMemo(
+    () => counts.patio_door,
+    [counts.patio_door],
+  );
+
+  const totalProjectUnits = totalWindows + totalDoors;
+  const totalCountSummary = formatCountSummary(totalWindows, totalDoors);
 
   const priceRanges = useMemo(
     () =>
@@ -324,7 +340,7 @@ export default function WindowsLanding({ variant = 'default' }) {
   };
 
   const handleProceedFromCounts = () => {
-    if (totalWindows <= 0) {
+    if (totalProjectUnits <= 0) {
       setStatus({ type: 'error', message: 'Please set at least one window before continuing.' });
       return;
     }
@@ -341,7 +357,7 @@ export default function WindowsLanding({ variant = 'default' }) {
       return;
     }
 
-    if (totalWindows <= 0) {
+    if (totalProjectUnits <= 0) {
       setStatus({ type: 'error', message: 'Please set your window counts before submitting.' });
       return;
     }
@@ -358,7 +374,7 @@ export default function WindowsLanding({ variant = 'default' }) {
           address: address.trim(),
           phone: phone.trim(),
           source: '/windows-landing sms funnel',
-          details: `Window count estimate: ${totalWindows} (single/double-hung:${counts.single_hung_double_hung}, picture:${counts.picture}, sliding:${counts.sliding}, casement:${counts.casement}, bay/bow:${counts.bay_bow}, patio door:${counts.patio_door}), images analyzed: ${images.length}`,
+          details: `Project count estimate: ${totalCountSummary} (single/double-hung:${counts.single_hung_double_hung}, picture:${counts.picture}, sliding:${counts.sliding}, casement:${counts.casement}, bay/bow:${counts.bay_bow}, patio door:${counts.patio_door}), images analyzed: ${images.length}`,
         }),
       });
 
@@ -600,7 +616,7 @@ export default function WindowsLanding({ variant = 'default' }) {
 
             <div className="total-bar">
               <span className="total-label">Total</span>
-              <span className="total-count">{totalWindows} windows</span>
+              <span className="total-count">{totalCountSummary}</span>
             </div>
 
             <p className="counter-helper">These are starting estimates - adjust any number to match your home. Alexis or Michael will verify everything during your free in-home consultation.</p>
@@ -661,25 +677,34 @@ export default function WindowsLanding({ variant = 'default' }) {
       {step === 5 ? (
         <div className="screen">
           <section className="confirmation-screen">
-            <div className="confirm-badge"><Check size={40} /></div>
+            <div className="confirmation-photo">
+              <img src="/images/windows-landing-hero-bg.jpg" alt="Finished Luitjens Exteriors window project" />
+              <div className="confirmation-photo-badge"><Check size={16} />Request received</div>
+            </div>
             <h2 className="confirm-title">Texting you now{ name ? `, ${name.split(' ')[0]}` : ''}.</h2>
-            <p className="confirm-sub">Check your phone in a few seconds. Here&apos;s a preview of what lands in your messages:</p>
-            <div className="sms-preview">
-              <div className="sms-header">
-                <div className="sms-avatar">A</div>
-                <div className="sms-name">Alexis � Luitjens Exteriors</div>
-                <div className="sms-number">{PHONE}</div>
+            <p className="confirm-sub">Your {totalCountSummary} range is on its way. Watch for a text from Alexis at {PHONE} in the next minute.</p>
+            <div className="confirmation-sequence" aria-label="Submission status">
+              <div className="confirmation-step is-complete">
+                <span className="confirmation-step-marker"><Check size={14} /></span>
+                <div>
+                  <strong>Estimate built</strong>
+                  <span>Your counts and address are locked in.</span>
+                </div>
               </div>
-              <div className="sms-time">Today 10:43 AM</div>
-              <div className="sms-bubble">Hey{ name ? ` ${name.split(' ')[0]}` : ''}! Here&apos;s your window pricing for <strong>{address.trim() || '1234 Forsyth Blvd'}</strong> ??</div>
-              <div className="sms-bubble">
-                <strong>{totalWindows} windows identified</strong>
-                <span className="divider">----------</span>
-                <div className="sms-price-line"><span className="sms-brand-label">Wincore</span><span className="sms-brand-price">{formatRange(priceRanges.wincore)}</span></div>
-                <div className="sms-price-line"><span className="sms-brand-label">Simonton ?</span><span className="sms-brand-price">{formatRange(priceRanges.simonton)}</span></div>
-                <div className="sms-price-line"><span className="sms-brand-label">Pella</span><span className="sms-brand-price">{formatRange(priceRanges.pella)}</span></div>
+              <div className="confirmation-step is-active">
+                <span className="confirmation-step-marker">2</span>
+                <div>
+                  <strong>Text with ranges sending</strong>
+                  <span>We&apos;re sending the brand ranges to your phone now.</span>
+                </div>
               </div>
-              <div className="sms-bubble">Want me to verify the count in person and lock in a final number? Reply YES and I&apos;ll text times. - Alexis</div>
+              <div className="confirmation-step">
+                <span className="confirmation-step-marker">3</span>
+                <div>
+                  <strong>Reply when you&apos;re ready</strong>
+                  <span>Reply YES and Alexis will text visit times.</span>
+                </div>
+              </div>
             </div>
             <div className="confirm-below">Want to skip the text and talk now?</div>
             <a href={PHONE_HREF} onClick={trackPhoneConversion} className="cta-btn cta-link call-btn">Call {PHONE}</a>
@@ -696,5 +721,7 @@ export default function WindowsLanding({ variant = 'default' }) {
     </div>
   );
 }
+
+
 
 
