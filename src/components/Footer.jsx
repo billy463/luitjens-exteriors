@@ -34,17 +34,19 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">Contact</h3>
             <ul className="space-y-2 text-sm text-slate-400">
-              <li>St. Louis, MO</li>
-              <li>Jefferson County</li>
-              <li>Phone: (314) 882-0973</li>
+              <li>Luitjens Exteriors LLC</li>
+              <li>66 Adventura Dr</li>
+              <li>Festus, MO 63028</li>
+              <li><a href="mailto:michaels@luitjens-exteriors.com" className="hover:text-primary transition">michaels@luitjens-exteriors.com</a></li>
+              <li><a href="tel:+13148820973" className="hover:text-primary transition">(314) 882-0973</a></li>
             </ul>
           </div>
         </div>
         <div className="pt-8 border-t border-slate-800 text-xs text-center text-slate-500 flex flex-col md:flex-row justify-between items-center">
           <p>&copy; {new Date().getFullYear()} Luitjens Exteriors. All rights reserved.</p>
           <div className="mt-4 md:mt-0 space-x-4">
-            <a href="#" className="hover:text-white transition">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition">Terms of Service</a>
+            <Link to="/privacy-policy" className="hover:text-white transition">Privacy Policy</Link>
+            <Link to="/terms-of-service" className="hover:text-white transition">Terms of Service</Link>
           </div>
         </div>
       </div>

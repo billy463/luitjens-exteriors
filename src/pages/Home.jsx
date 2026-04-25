@@ -1,7 +1,7 @@
 import { ArrowRight, ShieldCheck, Wrench, Umbrella } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Services from '../components/Services';
-import ContactForm from '../components/ContactForm';
+import { trackPhoneConversion } from '../lib/googleAds';
 
 export default function Home() {
   return (
@@ -83,7 +83,34 @@ export default function Home() {
 
       <Services />
 
-      <ContactForm />
+      <section id="contact" className="py-24 bg-darker">
+        <div className="container mx-auto px-4 md:px-6 text-center max-w-3xl">
+          <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-6">
+            Ready For A <span className="text-primary">Free Inspection?</span>
+          </h2>
+          <p className="text-lg text-gray-300 mb-10 leading-relaxed">
+            Chat with us using the bubble in the corner of your screen, or get an instant window quote built from your address.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="/windows-landing"
+              className="bg-primary hover:bg-primary-dark text-white px-8 py-4 rounded font-bold text-lg flex items-center justify-center gap-2 transition-transform hover:scale-105"
+            >
+              Get a Window Quote <ArrowRight className="w-5 h-5" />
+            </a>
+            <a
+              href="tel:+13148820973"
+              onClick={trackPhoneConversion}
+              className="bg-darker/30 backdrop-blur-sm border border-white/20 hover:bg-darker/50 text-white px-8 py-4 rounded font-bold text-lg transition-colors"
+            >
+              Call (314) 882-0973
+            </a>
+          </div>
+          <p className="text-sm text-gray-500 mt-6">
+            Chat with Luitjens Exteriors anytime using the chat bubble - we'll follow up by text within business hours.
+          </p>
+        </div>
+      </section>
 
     </div>
   );
