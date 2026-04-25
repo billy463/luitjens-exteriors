@@ -1,4 +1,5 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowRight, Check, Eye, MapPin, Minus, Phone, Plus } from 'lucide-react';
 import {
   BayBowIcon,
@@ -639,6 +640,12 @@ export default function WindowsLanding({ variant = 'default' }) {
                 <label className="form-label">Mobile Number</label>
                 <input type="tel" className="form-input" placeholder="(314) 555-0199" value={phone} onChange={event => setPhone(event.target.value)} />
               </div>
+              <p className="sms-consent-text">
+                By submitting this form, you consent to receive SMS text messages from Luitjens Exteriors LLC at the phone number provided, including messages about your inquiry and related service updates. Message frequency varies. Message and data rates may apply. Reply STOP to unsubscribe, HELP for help. See our{' '}
+                <Link to="/privacy-policy" className="landing-legal-link">Privacy Policy</Link>
+                {' '}and{' '}
+                <Link to="/terms-of-service" className="landing-legal-link">Terms of Service</Link>.
+              </p>
               <button className="cta-btn" type="submit" disabled={status.type === 'loading'}>
                 {status.type === 'loading' ? 'Sending...' : 'Text Me My Ranges'} <ArrowRight size={16} />
               </button>
@@ -660,7 +667,7 @@ export default function WindowsLanding({ variant = 'default' }) {
             <div className="sms-preview">
               <div className="sms-header">
                 <div className="sms-avatar">A</div>
-                <div className="sms-name">Alexis · Luitjens Exteriors</div>
+                <div className="sms-name">Alexis � Luitjens Exteriors</div>
                 <div className="sms-number">{PHONE}</div>
               </div>
               <div className="sms-time">Today 10:43 AM</div>
@@ -681,11 +688,13 @@ export default function WindowsLanding({ variant = 'default' }) {
       ) : null}
 
       <div className="landing-copyright">
-        © 2026 Luitjens Exteriors. All rights reserved.{' '}
-        <a href="#" className="landing-legal-link">Privacy Policy</a>
-        {' '}·{' '}
-        <a href="#" className="landing-legal-link">Terms of Service</a>
+        (c) 2026 Luitjens Exteriors. All rights reserved.{' '}
+        <Link to="/privacy-policy" className="landing-legal-link">Privacy Policy</Link>
+        {' '}|{' '}
+        <Link to="/terms-of-service" className="landing-legal-link">Terms of Service</Link>
       </div>
     </div>
   );
 }
+
+

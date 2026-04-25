@@ -453,6 +453,20 @@
   margin-top: 14px;
 }
 
+.sms-consent-text {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 12px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.sms-consent-text .landing-legal-link {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: underline;
+}
+
 .windows-landing-v2 .status {
   margin-top: 10px;
   border-radius: 10px;
@@ -1063,3 +1077,5 @@
     box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
   }
 }
+
+
