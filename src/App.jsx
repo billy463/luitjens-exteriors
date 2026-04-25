@@ -19,7 +19,7 @@ import GoogleAdsTag from './components/GoogleAdsTag';
 import MetaPixelTracker from './components/MetaPixelTracker';
 import { trackPhoneConversion } from './lib/googleAds';
 
-const GHL_WIDGET_ID = '69e6e3741024ff61765950bf';
+const GHL_WIDGET_ID = '69e8b4831024ffede3d9d279';
 const GHL_SCRIPT_ID = 'ghl-chat-widget-loader';
 const GHL_LOADER_SRC = 'https://widgets.leadconnectorhq.com/loader.js';
 const GHL_RESOURCES_URL = 'https://widgets.leadconnectorhq.com/chat-widget/loader.js';
