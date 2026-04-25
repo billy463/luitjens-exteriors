@@ -374,7 +374,16 @@ export default function WindowsLanding({ variant = 'default' }) {
           address: address.trim(),
           phone: phone.trim(),
           source: '/windows-landing sms funnel',
-          details: `Project count estimate: ${totalCountSummary} (single/double-hung:${counts.single_hung_double_hung}, picture:${counts.picture}, sliding:${counts.sliding}, casement:${counts.casement}, bay/bow:${counts.bay_bow}, patio door:${counts.patio_door}), images analyzed: ${images.length}`,
+          details: `Window count estimate: ${totalWindows} (single/double-hung:${counts.single_hung_double_hung}, picture:${counts.picture}, sliding:${counts.sliding}, casement:${counts.casement}, bay/bow:${counts.bay_bow}, patio door:${counts.patio_door}), images analyzed: ${images.length}`,
+          totalWindows,
+          pricing: {
+            wincore_low: priceRanges.wincore[0],
+            wincore_high: priceRanges.wincore[1],
+            simonton_low: priceRanges.simonton[0],
+            simonton_high: priceRanges.simonton[1],
+            pella_low: priceRanges.pella[0],
+            pella_high: priceRanges.pella[1],
+          },
         }),
       });
 

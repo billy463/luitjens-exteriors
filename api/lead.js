@@ -14,6 +14,42 @@ function escapeHtml(value) {
     .replaceAll("'", '&#39;');
 }
 
+function formatDisplay(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num) || num <= 0) return '';
+  return `$${Math.round(num / 1000)}K`;
+}
+
+function buildGhlPayload({ name, phone, email, address, totalWindows, pricing, source }) {
+  const trimmedName = (name || '').trim();
+  const nameParts = trimmedName.split(/\s+/);
+  const firstName = nameParts[0] || '';
+  const lastName = nameParts.slice(1).join(' ') || '';
+  const p = pricing || {};
+
+  return {
+    firstName,
+    lastName,
+    phone,
+    email: email || '',
+    address1: address,
+    total_windows: Number(totalWindows) || 0,
+    wincore_low: Number(p.wincore_low) || 0,
+    wincore_high: Number(p.wincore_high) || 0,
+    wincore_low_display: formatDisplay(p.wincore_low),
+    wincore_high_display: formatDisplay(p.wincore_high),
+    simonton_low: Number(p.simonton_low) || 0,
+    simonton_high: Number(p.simonton_high) || 0,
+    simonton_low_display: formatDisplay(p.simonton_low),
+    simonton_high_display: formatDisplay(p.simonton_high),
+    pella_low: Number(p.pella_low) || 0,
+    pella_high: Number(p.pella_high) || 0,
+    pella_low_display: formatDisplay(p.pella_low),
+    pella_high_display: formatDisplay(p.pella_high),
+    lead_source_page: source || '/windows-landing',
+  };
+}
+
 async function sendGhlWebhook(webhookUrl, lead) {
   if (!webhookUrl) return { configured: false, ok: false };
 
@@ -37,7 +73,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { name, phone, email, address, message, details, service, source } = req.body || {};
+  const { name, phone, email, address, message, details, service, source, totalWindows, pricing } = req.body || {};
 
   if (!name || !phone || !address) {
     return res.status(400).json({ error: 'Missing required fields.' });
@@ -116,7 +152,16 @@ export default async function handler(req, res) {
       `,
     });
 
-    const ghl = await sendGhlWebhook(ghlWebhookUrl, lead);
+    const ghlPayload = buildGhlPayload({
+      name,
+      phone,
+      email: safeEmail,
+      address,
+      totalWindows,
+      pricing,
+      source: safeSource,
+    });
+    const ghl = await sendGhlWebhook(ghlWebhookUrl, ghlPayload);
 
     return res.status(200).json({
       ok: true,
