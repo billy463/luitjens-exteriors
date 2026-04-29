@@ -376,6 +376,7 @@ export default function WindowsLanding({ variant = 'default' }) {
           source: '/windows-landing sms funnel',
           details: `Window count estimate: ${totalWindows} (single/double-hung:${counts.single_hung_double_hung}, picture:${counts.picture}, sliding:${counts.sliding}, casement:${counts.casement}, bay/bow:${counts.bay_bow}, patio door:${counts.patio_door}), images analyzed: ${images.length}`,
           totalWindows,
+          propertyImageUrl: images[0] || null,
           pricing: {
             wincore_low: priceRanges.wincore[0],
             wincore_high: priceRanges.wincore[1],

@@ -75,7 +75,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { name, phone, email, address, message, details, service, source, totalWindows, pricing } = req.body || {};
+  const { name, phone, email, address, message, details, service, source, totalWindows, pricing, propertyImageUrl } = req.body || {};
 
   if (!name || !phone || !address) {
     return res.status(400).json({ error: 'Missing required fields.' });
@@ -179,6 +179,7 @@ export default async function handler(req, res) {
             <p style="margin:0;color:#b8952a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;">New Lead Notification</p>
             <h1 style="margin:6px 0 0;color:#ffffff;font-size:22px;">New ${escapeHtml(safeService)} Lead</h1>
           </div>
+          ${propertyImageUrl ? `<div style="text-align:center;background:#f9fafb;border-bottom:1px solid #e5e7eb;"><img src="${escapeHtml(propertyImageUrl)}" alt="Property photo" style="width:100%;max-height:280px;object-fit:cover;display:block;" /></div>` : ''}
           <table style="width:100%;border-collapse:collapse;">
             <tr><td colspan="2" style="padding:16px 24px 4px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#b8952a;">Contact</td></tr>
             <tr>
