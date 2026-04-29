@@ -119,6 +119,37 @@ export default async function handler(req, res) {
     };
 
     const subject = `New ${safeService} Lead: ${name} (${phone})`;
+    const p = pricing || {};
+
+    const pricingRows = [
+      { brand: 'Wincore',   low: p.wincore_low,   high: p.wincore_high },
+      { brand: 'Simonton',  low: p.simonton_low,  high: p.simonton_high },
+      { brand: 'Pella',     low: p.pella_low,     high: p.pella_high },
+    ]
+      .filter(r => Number(r.low) > 0 || Number(r.high) > 0)
+      .map(r => `  ${r.brand}: ${formatDisplay(r.low)} – ${formatDisplay(r.high)}`)
+      .join('\n');
+
+    const pricingText = pricingRows
+      ? `\nEstimated Pricing\n${pricingRows}\n`
+      : '';
+
+    const pricingHtml = pricingRows
+      ? `
+        <tr><td colspan="2" style="padding:16px 24px 4px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#b8952a;border-top:1px solid #e5e7eb;">Estimated Pricing</td></tr>
+        ${[
+          { brand: 'Wincore',  low: p.wincore_low,  high: p.wincore_high },
+          { brand: 'Simonton', low: p.simonton_low, high: p.simonton_high },
+          { brand: 'Pella',    low: p.pella_low,    high: p.pella_high },
+        ]
+          .filter(r => Number(r.low) > 0 || Number(r.high) > 0)
+          .map(r => `<tr>
+            <td style="padding:6px 24px;color:#6b7280;font-size:14px;">${escapeHtml(r.brand)}</td>
+            <td style="padding:6px 24px;font-size:14px;font-weight:600;">${escapeHtml(formatDisplay(r.low))} – ${escapeHtml(formatDisplay(r.high))}</td>
+          </tr>`)
+          .join('')}
+      `
+      : '';
 
     await transporter.sendMail({
       from: notifyFrom,
@@ -126,29 +157,71 @@ export default async function handler(req, res) {
       replyTo: safeEmail || undefined,
       subject,
       text: [
-        `New ${safeService} lead submitted`,
+        `NEW ${safeService.toUpperCase()} LEAD`,
+        '─────────────────────────────',
+        `Name:         ${name}`,
+        `Phone:        ${phone}`,
+        `Email:        ${safeEmail || 'N/A'}`,
+        `Address:      ${address}`,
         '',
-        `Service: ${safeService}`,
-        `Source: ${safeSource}`,
-        `Name: ${name}`,
-        `Phone: ${phone}`,
-        `Email: ${safeEmail || 'N/A'}`,
-        `Address: ${address}`,
-        `Message: ${safeMessage || 'N/A'}`,
-        `Details: ${safeDetails || 'N/A'}`,
-        `Submitted At (UTC): ${submittedAt}`,
+        `Service:      ${safeService}`,
+        `Source:       ${safeSource}`,
+        `Message:      ${safeMessage || 'N/A'}`,
+        `Details:      ${safeDetails || 'N/A'}`,
+        pricingText,
+        `Submitted At: ${submittedAt}`,
       ].join('\n'),
       html: `
-        <h2>New ${escapeHtml(safeService)} Lead</h2>
-        <p><strong>Service:</strong> ${escapeHtml(safeService)}</p>
-        <p><strong>Source:</strong> ${escapeHtml(safeSource)}</p>
-        <p><strong>Name:</strong> ${escapeHtml(name)}</p>
-        <p><strong>Phone:</strong> ${escapeHtml(phone)}</p>
-        <p><strong>Email:</strong> ${escapeHtml(safeEmail || 'N/A')}</p>
-        <p><strong>Address:</strong> ${escapeHtml(address)}</p>
-        <p><strong>Message:</strong> ${escapeHtml(safeMessage || 'N/A')}</p>
-        <p><strong>Details:</strong> ${escapeHtml(safeDetails || 'N/A')}</p>
-        <p><strong>Submitted At (UTC):</strong> ${escapeHtml(submittedAt)}</p>
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;">
+          <div style="background:#0f1e2e;padding:24px;text-align:center;">
+            <p style="margin:0;color:#b8952a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;">New Lead Notification</p>
+            <h1 style="margin:6px 0 0;color:#ffffff;font-size:22px;">New ${escapeHtml(safeService)} Lead</h1>
+          </div>
+          <table style="width:100%;border-collapse:collapse;">
+            <tr><td colspan="2" style="padding:16px 24px 4px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#b8952a;">Contact</td></tr>
+            <tr>
+              <td style="padding:6px 24px;color:#6b7280;font-size:14px;width:35%;">Name</td>
+              <td style="padding:6px 24px;font-size:14px;font-weight:600;">${escapeHtml(name)}</td>
+            </tr>
+            <tr style="background:#f9fafb;">
+              <td style="padding:6px 24px;color:#6b7280;font-size:14px;">Phone</td>
+              <td style="padding:6px 24px;font-size:14px;font-weight:600;">${escapeHtml(phone)}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 24px;color:#6b7280;font-size:14px;">Email</td>
+              <td style="padding:6px 24px;font-size:14px;">${escapeHtml(safeEmail || 'N/A')}</td>
+            </tr>
+            <tr style="background:#f9fafb;">
+              <td style="padding:6px 24px;color:#6b7280;font-size:14px;">Address</td>
+              <td style="padding:6px 24px;font-size:14px;">${escapeHtml(address)}</td>
+            </tr>
+            <tr><td colspan="2" style="padding:16px 24px 4px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#b8952a;border-top:1px solid #e5e7eb;">Lead Details</td></tr>
+            <tr>
+              <td style="padding:6px 24px;color:#6b7280;font-size:14px;">Service</td>
+              <td style="padding:6px 24px;font-size:14px;">${escapeHtml(safeService)}</td>
+            </tr>
+            <tr style="background:#f9fafb;">
+              <td style="padding:6px 24px;color:#6b7280;font-size:14px;">Source</td>
+              <td style="padding:6px 24px;font-size:14px;">${escapeHtml(safeSource)}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 24px;color:#6b7280;font-size:14px;">Message</td>
+              <td style="padding:6px 24px;font-size:14px;">${escapeHtml(safeMessage || 'N/A')}</td>
+            </tr>
+            <tr style="background:#f9fafb;">
+              <td style="padding:6px 24px;color:#6b7280;font-size:14px;">Details</td>
+              <td style="padding:6px 24px;font-size:14px;">${escapeHtml(safeDetails || 'N/A')}</td>
+            </tr>
+            ${pricingHtml}
+            <tr style="background:#f9fafb;">
+              <td style="padding:6px 24px;color:#6b7280;font-size:14px;">Submitted At</td>
+              <td style="padding:6px 24px;font-size:14px;">${escapeHtml(submittedAt)}</td>
+            </tr>
+          </table>
+          <div style="background:#f9fafb;padding:16px 24px;text-align:center;border-top:1px solid #e5e7eb;">
+            <p style="margin:0;color:#9ca3af;font-size:12px;">Luitjens Exteriors · luitjens-exteriors.com</p>
+          </div>
+        </div>
       `,
     });
 
