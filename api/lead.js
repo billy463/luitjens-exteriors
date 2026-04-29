@@ -17,7 +17,9 @@ function escapeHtml(value) {
 function formatDisplay(value) {
   const num = Number(value);
   if (!Number.isFinite(num) || num <= 0) return '';
-  return `$${Math.round(num / 1000)}K`;
+  const rounded = Math.round(num / 100) / 10;
+  const display = rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1);
+  return `$${display}K`;
 }
 
 function buildGhlPayload({ name, phone, email, address, totalWindows, pricing, source }) {
