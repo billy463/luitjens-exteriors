@@ -79,7 +79,7 @@ function AppShell() {
 
   if (landingVariant) {
     return (
-      <div className="flex flex-col min-h-screen bg-dark text-white font-sans">
+      <div className="flex flex-col min-h-screen bg-transparent font-sans">
         <main className="flex-grow">
           <WindowsLanding variant={landingVariant} />
         </main>
