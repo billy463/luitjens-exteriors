@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, Eye, MapPin, Minus, Phone, Plus } from 'lucide-react';
+import { ArrowRight, Check, Eye, MapPin, Minus, Phone, Plus, Search, Sparkles, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   BayBowIcon,
   CasementIcon,
@@ -20,21 +21,33 @@ const MIN_ANALYZE_MS = 15000;
 const fallbackNarrative =
   "We couldn't get a clear look at your home from public photos. No problem - just enter your window counts below and we'll take it from there.";
 
+const GALLERY_PHOTOS = [
+  "/images/2026-03-26 17.55.27.jpg",
+  "/images/2026-03-26 14.02.37.jpg",
+  "/images/2026-03-26 13.49.39.jpg",
+  "/images/2026-03-24 17.39.50.jpg",
+  "/images/2026-03-25 11.40.16.jpg",
+  "/images/2026-02-10 16.53.50.jpg",
+  "/images/2026-02-10 11.44.07.jpg",
+  "/images/2026-02-04 11.46.29.jpg",
+  "/images/2025-12-22 11.54.43.jpg"
+];
+
 const heroCopy = {
   default: {
-    title: 'Lower your energy bills',
-    accent: 'with the right windows.',
-    lead: "New energy-efficient windows can cut your home's indoor temperature swing by 2-5 degrees and save hundreds on utility bills. See what it costs for your house in about 3 minutes.",
+    badge: 'Lower Your Energy Bills',
+    title: 'See your window replacement pricing range in under 3 minutes',
+    subtitle: "We carry name-brand windows without the massive markup. Because we're a small, independent team, our customers often can't believe we're half the price of the big guys.",
   },
   mayDiscount: {
-    title: '$1,000 off. 5 windows or more.',
-    accent: 'Booked this month.',
-    lead: "See your real pricing in about 3 minutes. If your quote covers 5+ windows, the $1,000 comes off the top - you'll see it as a line item before you ever talk to us.",
+    badge: '💰 $1,000 Off • May Only',
+    title: '$1,000 off when you replace 5+ windows this month',
+    subtitle: 'See your discounted pricing range instantly. If your quote covers 5+ windows, the $1,000 comes off automatically.',
   },
   speedPricing: {
-    title: 'Window pricing,',
-    accent: 'without the window salesman.',
-    lead: "Real numbers. Texted to your phone. Type your address. We'll count your windows from satellite imagery and send you an honest price range - the same range we'd quote you in person.",
+    badge: '⚡ Energy Bill Calculator',
+    title: 'See how much you\'ll save on energy bills with new windows',
+    subtitle: 'Get an instant pricing range + your estimated annual savings based on your home\'s size and current windows.',
   },
 };
 
@@ -143,6 +156,7 @@ export default function WindowsLanding({ variant = 'default' }) {
   const [analysisPulse, setAnalysisPulse] = useState(0);
   const [previewImage, setPreviewImage] = useState('/images/windows-landing-hero-house.jpg');
   const [images, setImages] = useState([]);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const addressInputRef = useRef(null);
 
   const totalWindows = useMemo(
@@ -410,324 +424,571 @@ export default function WindowsLanding({ variant = 'default' }) {
   ];
 
   return (
-    <div className="windows-landing-v2">
+    <div className="windows-landing-v2 min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 font-sans text-gray-900 overflow-x-hidden">
       {step === 1 ? (
-        <div className="screen">
-          <header className="header">
-            <a className="logo" href="/">
-              <img
-                src="https://images.squarespace-cdn.com/content/v1/67c894550ca45b50d4350eb4/e11fb7cd-e691-4181-a329-40aea8c93872/Luitjens%2BExteriors%2BLogo.jpg?format=1500w"
-                alt="Luitjens Exteriors"
-                className="logo-image"
-              />
-            </a>
-            <a href={PHONE_HREF} onClick={trackPhoneConversion} className="phone-link"><Phone />Call</a>
+        <div className="relative">
+          <header className="border-b border-gray-800 bg-[#0d1b2a]/95 px-4 py-4 backdrop-blur-md md:px-8">
+            <div className="mx-auto flex max-w-6xl items-center justify-between">
+              <a className="flex items-center gap-3" href="/">
+                <img
+                  src="https://images.squarespace-cdn.com/content/v1/67c894550ca45b50d4350eb4/e11fb7cd-e691-4181-a329-40aea8c93872/Luitjens%2BExteriors%2BLogo.jpg?format=1500w"
+                  alt="Luitjens Exteriors"
+                  className="h-10 w-auto object-contain"
+                />
+              </a>
+              <a 
+                href={PHONE_HREF} 
+                onClick={trackPhoneConversion}
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white shadow hover:bg-blue-700 h-9 px-4 py-2"
+              >
+                <Phone className="mr-2 size-4" />
+                Call Now
+              </a>
+            </div>
           </header>
 
-          <section className="hero">
-            <span className="eyebrow">St. Louis Homeowners</span>
-            <h1>{currentHero.title} <span className="accent">{currentHero.accent}</span></h1>
-            <p className="hero-lead">
-              {currentHero.lead}
-            </p>
-            <div className="trust-row">
-              <div className="trust-item"><div className="trust-dot" />10+ Years in St. Louis</div>
-              <div className="trust-item"><div className="trust-dot" />Family-Owned</div>
-              <div className="trust-item"><div className="trust-dot" />Licensed &amp; Insured</div>
-              <div className="trust-item"><div className="trust-dot" />BBB A-Rated</div>
-            </div>
-          </section>
+          <div className="relative overflow-hidden">
+                <div className="absolute inset-0 overflow-hidden bg-[#0d1b2a]">
+                  <img src="/images/windows-landing-hero-bg.jpg" alt="Luitjens Exteriors Windows" className="absolute left-0 bottom-0 h-[140%] w-full object-cover object-[65%_90%] md:h-[120%]" />
+                </div>
 
-          <div className="owner-card">
-            <div className="owner-avatar">
-              <img src="/images/owners-couple.jpg" alt="Alexis and Michael Luitjens" className="owner-avatar-image" />
-            </div>
-            <div className="owner-info">
-              <div className="owner-role">Who You&apos;re Working With</div>
-              <div className="owner-names">Alexis &amp; Michael Luitjens</div>
-              <div className="owner-quote">&quot;Michael is on every install. I answer every text. That&apos;s the whole company and that&apos;s on purpose.&quot;</div>
-            </div>
-          </div>
+                <div className="absolute inset-0 bg-black/25 sm:bg-gradient-to-r sm:from-black/55 sm:via-black/30 sm:to-black/10 pointer-events-none" />
 
-          <section className="primary-action-block">
-            <div className="action-kicker"><span className="live-dot" /><span className="live-text">Live Pricing Tool</span></div>
-            <h2 className="action-title">See Your Pricing in About 3 Minutes.</h2>
-            <p className="action-subtitle">Type your address. We&apos;ll find your home, count your windows, and <strong>text you real price ranges</strong> - no $189 bait, no sales calls.</p>
-            <form onSubmit={handleAddressStart}>
-              <div className="form-group">
-                <label className="form-label">Street Address</label>
-                <input
-                  ref={addressInputRef}
-                  type="text"
-                  className="form-input"
-                  placeholder="1234 Forsyth Blvd, St. Louis, MO"
-                  value={address}
-                  autoComplete="street-address"
-                  onChange={event => setAddress(event.target.value)}
-                />
+                <div className="relative mx-auto max-w-6xl px-4 py-16 md:px-8 md:py-24">
+                  <div className="grid items-center gap-8 lg:grid-cols-2">
+                    <div>
+                      <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-sm text-white backdrop-blur-sm">
+                        <Sparkles className="size-4" />
+                        {currentHero.badge || '🏠 Instant Price Range'}
+                      </div>
+
+                      <h1 className="mb-4 text-4xl md:text-5xl lg:text-6xl text-white leading-tight font-extrabold drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]">
+                        {currentHero.title}
+                      </h1>
+
+                      <p className="mb-8 text-lg text-white md:text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] font-medium">
+                        {currentHero.subtitle || currentHero.lead}
+                      </p>
+
+                      <div className="relative rounded-2xl border border-white/20 bg-white/95 p-6 mt-6 shadow-2xl backdrop-blur-sm md:p-8">
+                        <div className="absolute -right-4 -top-6 flex rotate-6 flex-col items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-red-600 px-4 py-2 font-black text-white shadow-xl shadow-red-500/20 border-4 border-white transform transition-transform hover:rotate-12 hover:scale-110 cursor-default">
+                          <span className="text-sm tracking-widest uppercase opacity-90">May Only</span>
+                          <span className="text-xl leading-none">10% OFF</span>
+                        </div>
+                        <h2 className="mb-2 pr-12 text-2xl font-extrabold leading-tight tracking-tight text-gray-900 md:pr-20">
+                          Get your free quote today to lock in your 10% May discount.
+                        </h2>
+                        <p className="mb-6 text-sm text-gray-600">
+                          Simply enter your home address to get started. 
+                        </p>
+
+                        <form onSubmit={handleAddressStart} className="space-y-4">
+                          <div className="relative">
+                            <MapPin className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-gray-400" />
+                            <input
+                              ref={addressInputRef}
+                              type="text"
+                              value={address}
+                              onChange={e => setAddress(e.target.value)}
+                              className="w-full rounded-xl border-2 border-gray-300 bg-white py-4 pl-12 pr-4 text-lg text-gray-900 placeholder-gray-500 transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+                              placeholder="1234 Forsyth Blvd, St. Louis, MO"
+                              autoComplete="street-address"
+                            />
+                          </div>
+
+                          <button
+                            type="submit"
+                            disabled={status.type === 'loading'}
+                            className="w-full inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-6 text-lg font-medium text-white shadow hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-colors"
+                          >
+                            {status.type === 'loading' ? 'Building Pricing...' : (
+                              <>
+                                <ArrowRight className="mr-2 size-5" />
+                                Get My Price Range Now
+                              </>
+                            )}
+                          </button>
+                        </form>
+                        {status.type === 'error' ? <p className="mt-4 text-red-600 bg-red-50 p-2 rounded-md text-sm">{status.message}</p> : null}
+
+                        <div className="mt-4 flex flex-col items-center justify-center gap-2 text-center text-sm text-gray-500">
+                          <div className="flex items-center gap-2">
+                            <Check className="size-4 shrink-0 text-green-600" />
+                            <span>We use public listing photos to accurately price your window replacement.</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="hidden lg:flex flex-col justify-center gap-6 text-white">
+                      <h3 className="text-sm uppercase tracking-widest text-white/70 font-bold">The Luitjens Exteriors Difference</h3>
+                      <div className="space-y-5">
+                        <div className="flex items-start gap-4">
+                          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-green-500/20">
+                            <Check className="size-5 text-green-400" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-white text-lg">Real Prices, Zero Pressure</div>
+                            <div className="text-sm text-white/70">We text your quote to your phone. No three-hour sales pitches.</div>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-4">
+                          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-500/20">
+                            <Check className="size-5 text-blue-400" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-white text-lg">No Aggressive Sales Teams</div>
+                            <div className="text-sm text-white/70">No call centers. Review your numbers on your own time.</div>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-4">
+                          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-indigo-500/20">
+                            <Check className="size-5 text-indigo-400" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-white text-lg">Half the Price of the Big Guys</div>
+                            <div className="text-sm text-white/70">Top-tier Wincore, Simonton &amp; Pella — without the corporate markup.</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <button className="cta-btn" type="submit" disabled={status.type === 'loading'}>
-                {status.type === 'loading' ? 'Finding Home...' : 'Find My Home'} <ArrowRight size={16} />
-              </button>
-              <p className="cta-fineprint">Free, no-obligation estimate. Takes about 3 minutes.</p>
-              {status.type === 'error' ? <p className="status status-error">{status.message}</p> : null}
-            </form>
-          </section>
+
+          <div className="mx-auto max-w-5xl px-4 pb-8 pt-0 md:px-8 md:pb-16">
+            <div className="space-y-12">
+
+              <div className="mx-auto max-w-6xl pt-12">
+                <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-lg md:p-10">
+                  <h3 className="mb-8 text-center text-sm uppercase tracking-wide text-gray-500 font-bold">
+                    The Luitjens Exteriors Difference
+                  </h3>
+                  <div className="grid gap-3 sm:grid-cols-2 sm:gap-8 md:grid-cols-3">
+                    <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:text-center">
+                      <div className="flex size-10 sm:size-12 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+                        <Check className="size-5 sm:size-6" />
+                      </div>
+                      <div>
+                        <h4 className="text-base font-bold text-gray-900 sm:mb-2 sm:text-lg">Real Prices, Zero Pressure</h4>
+                        <p className="text-sm text-gray-600 hidden sm:block">We text your quote directly to your phone. No grueling three-hour sales pitches in your living room.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:text-center">
+                      <div className="flex size-10 sm:size-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                        <Check className="size-5 sm:size-6" />
+                      </div>
+                      <div>
+                        <h4 className="text-base font-bold text-gray-900 sm:mb-2 sm:text-lg">No Aggressive Sales Teams</h4>
+                        <p className="text-sm text-gray-600 hidden sm:block">We don't have massive call centers bothering you every day. You review the numbers entirely on your own time.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 sm:flex-col sm:items-center sm:text-center">
+                      <div className="flex size-10 sm:size-12 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+                        <Check className="size-5 sm:size-6" />
+                      </div>
+                      <div>
+                        <h4 className="text-base font-bold text-gray-900 sm:mb-2 sm:text-lg">Half the Price of the Big Guys</h4>
+                        <p className="text-sm text-gray-600 hidden sm:block">You get top-tier Wincore, Simonton, and Pella windows without the bloated corporate markup.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mx-auto max-w-4xl">
+                <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+                  <div className="grid items-center gap-6 p-6 md:grid-cols-[auto_1fr] md:p-8">
+                    <div className="mx-auto size-32 overflow-hidden rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 md:size-40 border-2 border-blue-500">
+                      <img src="/images/owners-couple.jpg" alt="Alexis and Michael Luitjens" className="h-full w-full object-cover" />
+                    </div>
+                    <div>
+                      <div className="mb-2 text-xs uppercase tracking-wide text-gray-500 font-bold">
+                        Family Owned & Operated
+                      </div>
+                      <h3 className="mb-2 text-2xl text-gray-900 font-bold">Alexis & Michael Luitjens</h3>
+                      <p className="mb-4 text-gray-600 italic">
+                        "Michael is on every install. I answer every text. That's the whole company and
+                        that's on purpose."
+                      </p>
+                      <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
+                          <Check className="size-4 text-blue-600" />
+                          <span>10+ Years in St. Louis</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Check className="size-4 text-blue-600" />
+                          <span>BBB A-Rated</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Check className="size-4 text-blue-600" />
+                          <span>Licensed & Insured</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Photo Gallery Carousel */}
+              <div className="mx-auto max-w-4xl px-4 py-8">
+                <h3 className="mb-8 text-center text-3xl font-extrabold text-gray-900 tracking-tight">Our Work</h3>
+                <div className="relative group overflow-hidden rounded-2xl shadow-2xl bg-gray-100">
+                  <div className="aspect-[16/10] relative">
+                    <AnimatePresence mode="wait">
+                      <motion.img
+                        key={currentPhotoIndex}
+                        src={GALLERY_PHOTOS[currentPhotoIndex]}
+                        alt="Luitjens Exteriors project"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                        className="h-full w-full object-cover"
+                        style={{ 
+                          imageRendering: 'high-quality',
+                          WebkitBackfaceVisibility: 'hidden',
+                          backfaceVisibility: 'hidden',
+                        }}
+                      />
+                    </AnimatePresence>
+                    
+                    {/* Navigation Arrows */}
+                    <button 
+                      onClick={() => setCurrentPhotoIndex(prev => (prev === 0 ? GALLERY_PHOTOS.length - 1 : prev - 1))}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 text-gray-900 shadow-lg backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+                      aria-label="Previous photo"
+                    >
+                      <ChevronLeft className="size-6" />
+                    </button>
+                    <button 
+                      onClick={() => setCurrentPhotoIndex(prev => (prev === GALLERY_PHOTOS.length - 1 ? 0 : prev + 1))}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 text-gray-900 shadow-lg backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+                      aria-label="Next photo"
+                    >
+                      <ChevronRight className="size-6" />
+                    </button>
+
+                    {/* Photo Info Overlay */}
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-6 text-white">
+                      <p className="text-sm font-medium opacity-90">Project {currentPhotoIndex + 1} of {GALLERY_PHOTOS.length}</p>
+                    </div>
+                  </div>
+
+                  {/* Thumbnail Strip */}
+                  <div className="flex gap-2 p-2 overflow-x-auto bg-white scrollbar-hide">
+                    {GALLERY_PHOTOS.map((photo, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentPhotoIndex(idx)}
+                        className={`relative size-16 shrink-0 overflow-hidden rounded-lg transition-all ${currentPhotoIndex === idx ? 'ring-2 ring-blue-600 opacity-100 scale-105' : 'opacity-50 hover:opacity-100'}`}
+                      >
+                        <img src={photo} alt={`Thumbnail ${idx + 1}`} className="h-full w-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            
+            <footer className="mt-16 border-t border-gray-200 bg-transparent py-8">
+              <div className="mx-auto max-w-6xl px-4 text-center text-sm text-gray-600">
+                <p className="text-gray-500">
+                  © 2026 Luitjens Exteriors. All rights reserved. <Link to="/privacy-policy" className="underline">Privacy Policy</Link> | <Link to="/terms-of-service" className="underline">Terms of Service</Link>
+                </p>
+              </div>
+            </footer>
+          </div>
         </div>
       ) : null}
 
       {step === 2 ? (
-        <div className="screen">
-          <section className="analyzing-screen">
-            <div className="house-preview">
-              <img src={previewImage} alt="Property preview" className="property-preview-image" />
+        <div className="mx-auto max-w-2xl px-4 py-8">
+          <header className="mb-12 flex justify-center">
+            <img
+              src="https://images.squarespace-cdn.com/content/v1/67c894550ca45b50d4350eb4/e11fb7cd-e691-4181-a329-40aea8c93872/Luitjens%2BExteriors%2BLogo.jpg?format=1500w"
+              alt="Luitjens Exteriors"
+              className="h-12 w-auto brightness-0"
+            />
+          </header>
+          <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-2xl backdrop-blur-sm">
+            <div className="mb-8 overflow-hidden rounded-xl border-2 border-blue-500 shadow-lg">
+              <img src={previewImage} alt="Property preview" className="h-48 w-full object-cover" />
             </div>
-            <h2 className="analyzing-title">Analyzing your home...</h2>
-            <p className="analyzing-sub">Hang tight while we process your home details.</p>
-            <div className="progress-list">
+            <h2 className="mb-2 text-3xl font-extrabold text-gray-900 tracking-tight">Analyzing your home...</h2>
+            <p className="mb-8 text-gray-600">Hang tight while we process your home details.</p>
+            <div className="space-y-4">
               {progressItems.map((item, idx) => (
-                <div key={item.label} className={`progress-item ${item.done ? 'done' : ''} ${analysisPulse === idx ? 'active' : ''}`}>
-                  <div className="progress-check" />
-                  <span>{item.label}</span>
+                <div key={item.label} className={`flex items-center gap-4 transition-all duration-500 ${item.done ? 'opacity-100' : 'opacity-40'} ${analysisPulse === idx ? 'scale-105' : ''}`}>
+                  <div className={`flex size-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${item.done ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300'}`}>
+                    {item.done && <Check className="size-4" />}
+                  </div>
+                  <span className={`text-sm font-medium ${item.done ? 'text-gray-900' : 'text-gray-500'}`}>{item.label}</span>
                 </div>
               ))}
             </div>
-          </section>
+            {/* Loading Indicator */}
+            <div className="mt-12 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+              <motion.div 
+                className="h-full bg-gradient-to-r from-blue-600 to-indigo-600"
+                initial={{ width: "0%" }}
+                animate={{ width: `${(progressItems.filter(p => p.done).length / progressItems.length) * 100}%` }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+              />
+            </div>
+          </div>
         </div>
       ) : null}
 
       {step === 3 ? (
-        <div className="screen">
-          <section className="breakdown-screen">
-            <div className="breakdown-header-row">
-              <div className="breakdown-kicker">Step 2 of 3</div>
-              <h2 className="breakdown-title">Here&apos;s what we found. Look right?</h2>
-              <p className="breakdown-sub">Tap +, -, or type directly to adjust any count so it matches your home.</p>
-              <div className="address-chip"><MapPin size={14} />{address.trim() || '1234 Forsyth Blvd'}</div>
-            </div>
-
-            <div className="breakdown-preview-card">
-              <img
-                src={previewImage}
-                alt="Detected property preview"
-                className="breakdown-preview-image"
-              />
-            </div>
-
-            <div className="narrative-card" role="status" aria-live="polite">
-              <div className="narrative-header">
-                <div className="narrative-label"><Eye size={14} />Here&apos;s what I found</div>
-                <span className="sticker-badge sticker-warning">Not 100% accurate</span>
-              </div>
-              <p className="narrative-text">{narrative || fallbackNarrative}</p>
-            </div>
-
-            <div className="window-list">
-              <div className="window-list-header">
-                <span className="sticker-badge sticker-confirm">Please confirm</span>
-              </div>
-              <div className="window-row">
-                <div className="window-type-wrap"><div className="window-type-icon"><DoubleHungIcon size={30} color="#c4a66b" /></div><div className="window-type">Single / Double Hung<span className="window-type-hint">Standard vertical slider windows</span></div></div>
-                <div className="counter">
-                  <button type="button" className="counter-btn" onClick={() => updateCount('single_hung_double_hung', -1)}><Minus size={14} /></button>
-                  <input
-                    type="number"
-                    min="0"
-                    max="30"
-                    value={counts.single_hung_double_hung}
-                    onChange={event => setCountValue('single_hung_double_hung', event.target.value)}
-                    className="counter-input"
-                    aria-label="Single and double hung window count"
-                  />
-                  <button type="button" className="counter-btn" onClick={() => updateCount('single_hung_double_hung', 1)}><Plus size={14} /></button>
-                </div>
-              </div>
-              <div className="window-row">
-                <div className="window-type-wrap"><div className="window-type-icon"><PictureIcon size={30} color="#c4a66b" /></div><div className="window-type">Picture<span className="window-type-hint">Large fixed windows</span></div></div>
-                <div className="counter">
-                  <button type="button" className="counter-btn" onClick={() => updateCount('picture', -1)}><Minus size={14} /></button>
-                  <input
-                    type="number"
-                    min="0"
-                    max="30"
-                    value={counts.picture}
-                    onChange={event => setCountValue('picture', event.target.value)}
-                    className="counter-input"
-                    aria-label="Picture window count"
-                  />
-                  <button type="button" className="counter-btn" onClick={() => updateCount('picture', 1)}><Plus size={14} /></button>
-                </div>
-              </div>
-              <div className="window-row">
-                <div className="window-type-wrap"><div className="window-type-icon"><SlidingIcon size={30} color="#c4a66b" /></div><div className="window-type">Sliding<span className="window-type-hint">Horizontal sliding windows</span></div></div>
-                <div className="counter">
-                  <button type="button" className="counter-btn" onClick={() => updateCount('sliding', -1)}><Minus size={14} /></button>
-                  <input
-                    type="number"
-                    min="0"
-                    max="30"
-                    value={counts.sliding}
-                    onChange={event => setCountValue('sliding', event.target.value)}
-                    className="counter-input"
-                    aria-label="Sliding window count"
-                  />
-                  <button type="button" className="counter-btn" onClick={() => updateCount('sliding', 1)}><Plus size={14} /></button>
-                </div>
-              </div>
-              <div className="window-row">
-                <div className="window-type-wrap"><div className="window-type-icon"><CasementIcon size={30} color="#c4a66b" /></div><div className="window-type">Casement<span className="window-type-hint">Side-hinged windows that crank outward</span></div></div>
-                <div className="counter">
-                  <button type="button" className="counter-btn" onClick={() => updateCount('casement', -1)}><Minus size={14} /></button>
-                  <input
-                    type="number"
-                    min="0"
-                    max="30"
-                    value={counts.casement}
-                    onChange={event => setCountValue('casement', event.target.value)}
-                    className="counter-input"
-                    aria-label="Casement window count"
-                  />
-                  <button type="button" className="counter-btn" onClick={() => updateCount('casement', 1)}><Plus size={14} /></button>
-                </div>
-              </div>
-              <div className="window-row">
-                <div className="window-type-wrap"><div className="window-type-icon"><BayBowIcon size={30} color="#c4a66b" /></div><div className="window-type">Bay / Bow<span className="window-type-hint">Projected bay or bow windows</span></div></div>
-                <div className="counter">
-                  <button type="button" className="counter-btn" onClick={() => updateCount('bay_bow', -1)}><Minus size={14} /></button>
-                  <input
-                    type="number"
-                    min="0"
-                    max="30"
-                    value={counts.bay_bow}
-                    onChange={event => setCountValue('bay_bow', event.target.value)}
-                    className="counter-input"
-                    aria-label="Bay and bow window count"
-                  />
-                  <button type="button" className="counter-btn" onClick={() => updateCount('bay_bow', 1)}><Plus size={14} /></button>
-                </div>
-              </div>
-              <div className="window-row">
-                <div className="window-type-wrap"><div className="window-type-icon"><SlidingPatioDoorIcon size={30} color="#c4a66b" /></div><div className="window-type">Sliding Patio Door / French Doors<span className="window-type-hint">Confirm patio and exterior door glass units</span></div></div>
-                <div className="counter">
-                  <button type="button" className="counter-btn" onClick={() => updateCount('patio_door', -1)}><Minus size={14} /></button>
-                  <input
-                    type="number"
-                    min="0"
-                    max="30"
-                    value={counts.patio_door}
-                    onChange={event => setCountValue('patio_door', event.target.value)}
-                    className="counter-input"
-                    aria-label="Patio and French door count"
-                  />
-                  <button type="button" className="counter-btn" onClick={() => updateCount('patio_door', 1)}><Plus size={14} /></button>
+        <div className="mx-auto max-w-3xl px-4 py-12">
+          <header className="mb-12 flex justify-center">
+            <img
+              src="https://images.squarespace-cdn.com/content/v1/67c894550ca45b50d4350eb4/e11fb7cd-e691-4181-a329-40aea8c93872/Luitjens%2BExteriors%2BLogo.jpg?format=1500w"
+              alt="Luitjens Exteriors"
+              className="h-12 w-auto brightness-0"
+            />
+          </header>
+          <div className="rounded-3xl border border-gray-200 bg-white shadow-2xl p-6 md:p-10 scale-[1.02] transform transition-all">
+            <div className="mb-8 flex items-center justify-between">
+              <div>
+                <div className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-600">Step 2 of 3</div>
+                <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Here's what we found. Look right?</h2>
+                <div className="mt-2 flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
+                  <MapPin size={14} />
+                  {address.trim() || '1234 Forsyth Blvd'}
                 </div>
               </div>
             </div>
 
-            <div className="total-bar">
-              <span className="total-label">Total</span>
-              <span className="total-count">{totalCountSummary}</span>
+            <div className="mb-8 overflow-hidden rounded-2xl border-2 border-gray-100 shadow-inner">
+              <img src={previewImage} alt="Detected property" className="h-64 w-full object-cover" />
             </div>
 
-            <p className="counter-helper">These are starting estimates - adjust any number to match your home. Alexis or Michael will verify everything during your free in-home consultation.</p>
+            <div className="mb-8 rounded-2xl bg-indigo-50 p-6 border border-indigo-100">
+              <div className="mb-2 flex items-center gap-2 text-indigo-900 font-bold">
+                <Eye size={18} />
+                <span>AI Vision Report</span>
+                <span className="ml-auto rounded-full bg-white/50 px-2.5 py-0.5 text-[10px] tracking-wider uppercase text-indigo-700 font-black">Verify Counts</span>
+              </div>
+              <p className="text-sm leading-relaxed text-indigo-800 italic">{narrative || fallbackNarrative}</p>
+            </div>
 
-            <button type="button" className="cta-btn cta-link" onClick={handleProceedFromCounts}>
-              Looks Right - Continue <ArrowRight size={16} />
-            </button>
+            <div className="grid gap-4 md:grid-cols-2">
+              {[
+                { id: 'single_hung_double_hung', label: 'Single / Double Hung', hint: 'Vertical sliders', icon: <DoubleHungIcon size={24} color="#2563eb" /> },
+                { id: 'picture', label: 'Picture', hint: 'Fixed windows', icon: <PictureIcon size={24} color="#2563eb" /> },
+                { id: 'sliding', label: 'Sliding', hint: 'Horizontal sliders', icon: <SlidingIcon size={24} color="#2563eb" /> },
+                { id: 'casement', label: 'Casement', hint: 'Crank outward', icon: <CasementIcon size={24} color="#2563eb" /> },
+                { id: 'bay_bow', label: 'Bay / Bow', hint: 'Projected units', icon: <BayBowIcon size={24} color="#2563eb" /> },
+                { id: 'patio_door', label: 'Patio / French Doors', hint: 'Glass exit doors', icon: <SlidingPatioDoorIcon size={24} color="#2563eb" /> },
+              ].map(windowType => (
+                <div key={windowType.id} className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50/50 p-4 hover:border-blue-200 hover:bg-blue-50/20 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm border border-gray-100">
+                      {windowType.icon}
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-900">{windowType.label}</div>
+                      <div className="text-[11px] text-gray-500">{windowType.hint}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button type="button" onClick={() => updateCount(windowType.id, -1)} className="flex size-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 select-none">
+                      <Minus size={14} />
+                    </button>
+                    <input
+                      type="number"
+                      min="0"
+                      max="30"
+                      value={counts[windowType.id]}
+                      onChange={e => setCountValue(windowType.id, e.target.value)}
+                      className="w-10 bg-transparent text-center font-black text-gray-900 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <button type="button" onClick={() => updateCount(windowType.id, 1)} className="flex size-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 select-none">
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
 
-            {status.type === 'error' ? <p className="status status-error">{status.message}</p> : null}
-          </section>
+            <div className="mt-8 flex items-center justify-between rounded-2xl border-2 border-gray-900 bg-gray-900 p-6 text-white shadow-xl">
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Total Project Units</div>
+                <div className="text-xl font-extrabold">{totalCountSummary}</div>
+              </div>
+              <button 
+                onClick={handleProceedFromCounts}
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-bold text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+              >
+                Confirm & See Prices
+                <ArrowRight size={18} />
+              </button>
+            </div>
+            
+            {status.type === 'error' ? <p className="mt-4 rounded-lg bg-red-50 p-3 text-center text-sm font-medium text-red-600">{status.message}</p> : null}
+          </div>
         </div>
       ) : null}
 
       {step === 4 ? (
-        <div className="screen">
-          <section className="phone-screen">
-            <div className="breakdown-kicker">Step 3 of 3 - Last Step</div>
-            <h2 className="phone-heading">Where should we <span className="accent">text your ranges?</span></h2>
-            <p className="phone-intro">We built a custom price range for your home across 3 brands. Drop your number and we&apos;ll text it over in under a minute.</p>
-            <div className="preview-card">
-              <div className="preview-header">You&apos;ll receive a text with:</div>
-              <div className="preview-item"><div className="preview-check" /><span>Your project range with all-in pricing</span></div>
-              <div className="preview-item"><div className="preview-check" /><span>Pricing for each brand:</span></div>
-              <div className="brand-row">
-                <span className="brand-pill">Wincore</span>
-                <span className="brand-pill">Simonton</span>
-                <span className="brand-pill">Pella</span>
+        <div className="mx-auto max-w-2xl px-4 py-12">
+          <header className="mb-12 flex justify-center">
+            <img
+              src="https://images.squarespace-cdn.com/content/v1/67c894550ca45b50d4350eb4/e11fb7cd-e691-4181-a329-40aea8c93872/Luitjens%2BExteriors%2BLogo.jpg?format=1500w"
+              alt="Luitjens Exteriors"
+              className="h-12 w-auto brightness-0"
+            />
+          </header>
+          <div className="rounded-3xl border border-gray-200 bg-white p-8 md:p-12 shadow-2xl">
+            <div className="mb-2 text-xs font-black uppercase tracking-[0.2em] text-blue-600">Step 3 of 3 — Last Step</div>
+            <h2 className="mb-4 text-4xl font-extrabold text-gray-900 tracking-tight leading-none">Where should we <span className="text-blue-600">text your ranges?</span></h2>
+            <p className="mb-10 text-lg text-gray-600 font-medium">We built a custom price range for your home across 3 brands. Drop your number and we'll text it over in under a minute.</p>
+            
+            <div className="mb-10 rounded-2xl border border-blue-100 bg-blue-50/50 p-6">
+              <div className="mb-4 text-sm font-bold text-blue-900">You'll receive a detailed text with:</div>
+              <div className="space-y-3">
+                {[
+                  'Your project range with all-in pricing',
+                  'Individual brand pricing (Wincore, Simonton, Pella)',
+                  'What similar St. Louis homes actually paid',
+                ].map(item => (
+                  <div key={item} className="flex items-center gap-3 text-sm font-medium text-gray-700">
+                    <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
+                      <Check className="size-3" />
+                    </div>
+                    {item}
+                  </div>
+                ))}
               </div>
-              <div className="preview-item"><div className="preview-check" /><span>What similar St. Louis homes actually paid</span></div>
             </div>
-            <form onSubmit={handleLeadSubmit}>
-              <div className="form-group">
-                <label className="form-label">Full Name</label>
-                <input type="text" className="form-input" placeholder="Sarah Johnson" value={name} onChange={event => setName(event.target.value)} />
+
+            <form onSubmit={handleLeadSubmit} className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-gray-900">Your Full Name</label>
+                  <input 
+                    type="text" 
+                    className="w-full rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 font-medium transition-all focus:border-blue-500 focus:bg-white focus:outline-none"
+                    placeholder="Sarah Johnson" 
+                    value={name} 
+                    onChange={e => setName(e.target.value)} 
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-gray-900">Your Mobile Number</label>
+                  <input 
+                    type="tel" 
+                    className="w-full rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 font-medium transition-all focus:border-blue-500 focus:bg-white focus:outline-none"
+                    placeholder="(314) 555-0199" 
+                    value={phone} 
+                    onChange={e => setPhone(e.target.value)} 
+                    required
+                  />
+                </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">Mobile Number</label>
-                <input type="tel" className="form-input" placeholder="(314) 555-0199" value={phone} onChange={event => setPhone(event.target.value)} />
+
+              <div className="rounded-xl bg-gray-50 p-4 text-[10px] leading-relaxed text-gray-500">
+                By submitting, you consent to receive SMS text messages from Luitjens Exteriors at the number provided. Message/data rates may apply. Reply STOP to cancel. Review our{' '}
+                <Link to="/privacy-policy" className="underline hover:text-blue-600">Privacy Policy</Link> and <Link to="/terms-of-service" className="underline hover:text-blue-600">Terms</Link>.
               </div>
-              <p className="sms-consent-text">
-                By submitting this form, you consent to receive SMS text messages from Luitjens Exteriors LLC at the phone number provided, including messages about your inquiry and related service updates. Message frequency varies. Message and data rates may apply. Reply STOP to unsubscribe, HELP for help. See our{' '}
-                <Link to="/privacy-policy" className="landing-legal-link">Privacy Policy</Link>
-                {' '}and{' '}
-                <Link to="/terms-of-service" className="landing-legal-link">Terms of Service</Link>.
-              </p>
-              <button className="cta-btn" type="submit" disabled={status.type === 'loading'}>
-                {status.type === 'loading' ? 'Sending...' : 'Text Me My Ranges'} <ArrowRight size={16} />
+
+              <button 
+                type="submit" 
+                disabled={status.type === 'loading'}
+                className="w-full flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 py-5 text-xl font-black text-white shadow-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all transform active:scale-[0.98]"
+              >
+                {status.type === 'loading' ? 'Encrypting & Sending...' : 'Text Me My Ranges'}
+                <ArrowRight className="size-6" />
               </button>
-              <p className="cta-fineprint">Free. No sales calls unless you ask.</p>
-              {status.message ? (
-                <p className={`status ${status.type === 'success' ? 'status-success' : 'status-error'}`}>{status.message}</p>
-              ) : null}
+              
+              <div className="text-center text-xs font-medium text-gray-400">⚡ Instant Delivery • No Hidden Fees • No Sales Pressure</div>
+
+              {status.message && (
+                <p className={`rounded-xl p-4 text-center text-sm font-bold ${status.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                  {status.message}
+                </p>
+              )}
             </form>
-          </section>
+          </div>
         </div>
       ) : null}
 
       {step === 5 ? (
-        <div className="screen">
-          <section className="confirmation-screen">
-            <div className="confirmation-photo">
-              <img src="/images/windows-landing-hero-bg.jpg" alt="Finished Luitjens Exteriors window project" />
-              <div className="confirmation-photo-badge"><Check size={16} />Request received</div>
-            </div>
-            <h2 className="confirm-title">Texting you now{ name ? `, ${name.split(' ')[0]}` : ''}.</h2>
-            <p className="confirm-sub">Your {totalCountSummary} range is on its way. Watch for a text from Alexis at {PHONE} in the next minute.</p>
-            <div className="confirmation-sequence" aria-label="Submission status">
-              <div className="confirmation-step is-complete">
-                <span className="confirmation-step-marker"><Check size={14} /></span>
-                <div>
-                  <strong>Estimate built</strong>
-                  <span>Your counts and address are locked in.</span>
-                </div>
-              </div>
-              <div className="confirmation-step is-active">
-                <span className="confirmation-step-marker">2</span>
-                <div>
-                  <strong>Text with ranges sending</strong>
-                  <span>We&apos;re sending the brand ranges to your phone now.</span>
-                </div>
-              </div>
-              <div className="confirmation-step">
-                <span className="confirmation-step-marker">3</span>
-                <div>
-                  <strong>Reply when you&apos;re ready</strong>
-                  <span>Reply YES and Alexis will text visit times.</span>
-                </div>
+        <div className="mx-auto max-w-2xl px-4 py-24">
+          <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl">
+            <div className="relative h-48 sm:h-64">
+              <img src="/images/windows-landing-hero-bg.jpg" alt="Finished Luitjens project" className="h-full w-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent" />
+              <div className="absolute bottom-6 left-6 flex items-center gap-2 rounded-full bg-green-500 px-4 py-1.5 text-sm font-bold text-white shadow-lg">
+                <Check className="size-4" />
+                <span>Request Received</span>
               </div>
             </div>
-            <div className="confirm-below">Want to skip the text and talk now?</div>
-            <a href={PHONE_HREF} onClick={trackPhoneConversion} className="cta-btn cta-link call-btn">Call {PHONE}</a>
-          </section>
+            
+            <div className="p-8 md:p-12">
+              <h2 className="mb-2 text-4xl font-extrabold text-gray-900 tracking-tight leading-none">Texting you now{ name ? `, ${name.split(' ')[0]}` : ''}.</h2>
+              <p className="mb-10 text-lg text-gray-600 font-medium">Your {totalCountSummary} range is on its way. Watch for a text from Alexis at <span className="font-bold text-gray-900 whitespace-nowrap">{PHONE}</span> in the next minute.</p>
+              
+              <div className="mb-10 space-y-6">
+                <div className="flex gap-4">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+                    <Check className="size-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900">Estimate built</h4>
+                    <p className="text-sm text-gray-500">Your counts and address are locked in.</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                    <div className="animate-pulse flex size-4 items-center justify-center rounded-full bg-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900">Text sending</h4>
+                    <p className="text-sm text-gray-500">We're sending the brand ranges to your phone now.</p>
+                  </div>
+                </div>
+                <div className="flex gap-4 opacity-40">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-400 font-bold text-xs ring-1 ring-gray-200">
+                    3
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900">Ready for next steps</h4>
+                    <p className="text-sm text-gray-500">Reply YES and Alexis will text visit times.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pt-8 border-t border-gray-100">
+                <div className="text-sm font-medium text-gray-500 italic">Want to talk with Michael or Alexis now?</div>
+                <a 
+                  href={PHONE_HREF} 
+                  onClick={trackPhoneConversion}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-100 px-6 py-3 font-bold text-gray-900 transition-colors hover:bg-gray-200"
+                >
+                  <Phone className="size-4" />
+                  Call {PHONE}
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       ) : null}
 
-      <div className="landing-copyright">
-        (c) 2026 Luitjens Exteriors. All rights reserved.{' '}
-        <Link to="/privacy-policy" className="landing-legal-link">Privacy Policy</Link>
-        {' '}|{' '}
-        <Link to="/terms-of-service" className="landing-legal-link">Terms of Service</Link>
-      </div>
+      <footer className="mt-12 py-12 border-t border-gray-200/50">
+        <div className="mx-auto max-w-6xl px-4 text-center">
+          <p className="text-sm font-medium text-gray-500">
+            © 2026 Luitjens Exteriors. All rights reserved. {' '}
+            <Link to="/privacy-policy" className="underline hover:text-blue-600">Privacy Policy</Link>
+            {' '}|{' '}
+            <Link to="/terms-of-service" className="underline hover:text-blue-600">Terms of Service</Link>
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
