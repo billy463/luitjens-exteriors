@@ -214,9 +214,7 @@ export default function WindowsLanding({ variant = 'default' }) {
   }, [step]);
 
   useEffect(() => {
-    const mapsKey =
-      import.meta.env.VITE_GOOGLE_MAPS_API_KEY ||
-      import.meta.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    const mapsKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     if (!mapsKey || !addressInputRef.current) return;
 
     let autocomplete;
