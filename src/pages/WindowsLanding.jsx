@@ -256,6 +256,10 @@ export default function WindowsLanding({ variant = 'default' }) {
   const runAnalysisRef = useRef(null);
   const seenMenuRef = useRef(new Set());
   const holdScrollRef = useRef(false);
+  const recapSentRef = useRef(false);
+  const convertedRef = useRef(false);
+  const recapRef = useRef({});
+  const sessionStartRef = useRef(Date.now());
 
   const nextId = () => {
     idRef.current += 1;
@@ -287,6 +291,18 @@ export default function WindowsLanding({ variant = 'default' }) {
     const highs = Object.values(priceRanges).map(r => r[1]);
     return [Math.min(...lows), Math.max(...highs)];
   }, [priceRanges]);
+
+  // Keep the latest session snapshot in a ref so the on-exit recap handler reads current values.
+  recapRef.current = {
+    variant,
+    stage,
+    address,
+    totalWindows,
+    totalDoors,
+    projectRange,
+    messages,
+    seenMenu: Array.from(seenMenuRef.current),
+  };
 
   const addMessage = useCallback(msg => {
     setMessages(prev => [...prev, { id: msg.id ?? Date.now() + Math.random(), ...msg }]);
@@ -329,6 +345,60 @@ export default function WindowsLanding({ variant = 'default' }) {
     if (holdScrollRef.current) return;
     scrollThreadToBottom();
   }, [messages, botTyping, scrollThreadToBottom]);
+
+  // Email a session recap when an ENGAGED visitor leaves (covers people who never submit).
+  // Skipped for instant bounces (no interaction) and for converters (their lead email has it all).
+  useEffect(() => {
+    const send = () => {
+      if (recapSentRef.current || convertedRef.current) return;
+      const d = recapRef.current || {};
+      const msgs = Array.isArray(d.messages) ? d.messages : [];
+      const userActions = msgs.filter(m => m.kind === 'text' && m.from === 'user').length;
+      const engaged = userActions > 0 || (d.stage && d.stage !== 'boot' && d.stage !== 'menu');
+      if (!engaged) return;
+      recapSentRef.current = true;
+      const transcript = msgs
+        .filter(m => m.kind === 'text' && m.text)
+        .map(m => `${m.from === 'bot' ? 'Alexis' : 'Visitor'}: ${m.text}`)
+        .join('\n');
+      const reachedPricing = ['pricing', 'contact', 'done'].includes(d.stage);
+      const payload = JSON.stringify({
+        variant: d.variant,
+        stageReached: d.stage,
+        address: d.address || null,
+        totalWindows: reachedPricing ? d.totalWindows : null,
+        totalDoors: reachedPricing ? d.totalDoors : null,
+        pricingLow: reachedPricing && d.projectRange ? Math.round(d.projectRange[0]) : null,
+        pricingHigh: reachedPricing && d.projectRange ? Math.round(d.projectRange[1]) : null,
+        menuViewed: d.seenMenu || [],
+        durationSec: (Date.now() - sessionStartRef.current) / 1000,
+        transcript,
+      });
+      try {
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon('/api/session-recap', new Blob([payload], { type: 'application/json' }));
+        } else {
+          fetch('/api/session-recap', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload,
+            keepalive: true,
+          });
+        }
+      } catch {
+        // best-effort; ignore
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') send();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', send);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', send);
+    };
+  }, []);
 
   // SEO / page meta.
   useEffect(() => {
@@ -746,6 +816,7 @@ export default function WindowsLanding({ variant = 'default' }) {
       trackMetaLead({ content_name: 'Windows landing chat lead', value: 0, currency: 'USD' });
 
       setLeadStatus({ type: 'success', message: '' });
+      convertedRef.current = true; // they submitted — lead email covers it, skip the recap
       holdScrollRef.current = false; // resume auto-scroll so the confirmation shows
       pushUser(`${name.trim()} · ${phone.trim()}`);
       setStage('done');
