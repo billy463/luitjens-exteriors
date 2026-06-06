@@ -55,10 +55,11 @@ export default async function handler(req, res) {
 
   const gmailUser = requiredEnv('GMAIL_USER');
   const gmailAppPassword = requiredEnv('GMAIL_APP_PASSWORD');
-  const notifyTo = requiredEnv('LEAD_NOTIFY_TO') || gmailUser;
+  // Recaps go ONLY to a dedicated analytics address (RECAP_NOTIFY_TO) — never the lead/Alexis inbox.
+  const notifyTo = requiredEnv('RECAP_NOTIFY_TO');
   const notifyFrom = requiredEnv('LEAD_NOTIFY_FROM') || gmailUser;
   if (!gmailUser || !gmailAppPassword || !notifyTo) {
-    return res.status(200).json({ ok: false, error: 'email not configured' });
+    return res.status(200).json({ ok: true, skipped: 'no RECAP_NOTIFY_TO configured' });
   }
 
   const stage = STAGE_LABELS[stageReached] || stageReached || 'Unknown';
