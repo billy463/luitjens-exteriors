@@ -75,7 +75,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { name, phone, email, address, message, details, service, source, totalWindows, pricing, propertyImageUrl } = req.body || {};
+  const { name, phone, email, address, message, details, service, source, totalWindows, pricing, propertyImageUrl, transcript, addressLat, addressLng, placeId } = req.body || {};
 
   if (!name || !phone || !address) {
     return res.status(400).json({ error: 'Missing required fields.' });
@@ -107,6 +107,17 @@ export default async function handler(req, res) {
     const safeMessage = (message || '').toString().trim();
     const safeDetails = (details || '').toString().trim();
     const safeEmail = (email || '').toString().trim();
+    const safeTranscript = (transcript || '').toString().trim().slice(0, 6000);
+
+    const lat = Number(addressLat);
+    const lng = Number(addressLng);
+    const hasCoords = Number.isFinite(lat) && Number.isFinite(lng);
+    const cleanPlaceId = (placeId || '').toString().trim();
+    const mapsUrl = hasCoords
+      ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}${cleanPlaceId ? `&query_place_id=${encodeURIComponent(cleanPlaceId)}` : ''}`
+      : address
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+        : '';
     const submittedAt = new Date().toISOString();
     const lead = {
       service: safeService,
@@ -165,12 +176,14 @@ export default async function handler(req, res) {
         `Phone:        ${phone}`,
         `Email:        ${safeEmail || 'N/A'}`,
         `Address:      ${address}`,
+        mapsUrl ? `Map:          ${mapsUrl}` : '',
         '',
         `Service:      ${safeService}`,
         `Source:       ${safeSource}`,
         `Message:      ${safeMessage || 'N/A'}`,
         `Details:      ${safeDetails || 'N/A'}`,
         pricingText,
+        safeTranscript ? `\nChat Transcript\n─────────────────────────────\n${safeTranscript}\n` : '',
         `Submitted At: ${submittedAt}`,
       ].join('\n'),
       html: `
@@ -196,7 +209,7 @@ export default async function handler(req, res) {
             </tr>
             <tr style="background:#f9fafb;">
               <td style="padding:6px 24px;color:#6b7280;font-size:14px;">Address</td>
-              <td style="padding:6px 24px;font-size:14px;">${escapeHtml(address)}</td>
+              <td style="padding:6px 24px;font-size:14px;">${escapeHtml(address)}${mapsUrl ? ` &nbsp;·&nbsp; <a href="${escapeHtml(mapsUrl)}" style="color:#2563eb;font-weight:600;">View map ↗</a>` : ''}</td>
             </tr>
             <tr><td colspan="2" style="padding:16px 24px 4px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#b8952a;border-top:1px solid #e5e7eb;">Lead Details</td></tr>
             <tr>
@@ -216,6 +229,10 @@ export default async function handler(req, res) {
               <td style="padding:6px 24px;font-size:14px;">${escapeHtml(safeDetails || 'N/A')}</td>
             </tr>
             ${pricingHtml}
+            ${safeTranscript ? `
+            <tr><td colspan="2" style="padding:16px 24px 4px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#b8952a;border-top:1px solid #e5e7eb;">Chat Transcript</td></tr>
+            <tr><td colspan="2" style="padding:6px 24px 14px;"><pre style="margin:0;white-space:pre-wrap;word-break:break-word;font-family:Arial,sans-serif;font-size:13px;line-height:1.5;color:#374151;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:12px;">${escapeHtml(safeTranscript)}</pre></td></tr>
+            ` : ''}
             <tr style="background:#f9fafb;">
               <td style="padding:6px 24px;color:#6b7280;font-size:14px;">Submitted At</td>
               <td style="padding:6px 24px;font-size:14px;">${escapeHtml(submittedAt)}</td>

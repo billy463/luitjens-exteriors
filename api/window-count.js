@@ -16,6 +16,7 @@ const MANUAL_FALLBACK = {
     "We couldn't get a clear look at your home from public photos. No problem - just enter your window counts below and we'll take it from there.",
   facesObserved: [],
   imagesAnalyzed: 0,
+  bestImageIndices: [],
   model: null,
 };
 
@@ -38,18 +39,42 @@ Important patio_door counting rule:
 - If unsure whether two images show the same opening, dedupe conservatively.
 
 Then estimate windows you cannot see (typically the back of the house) based
-on home size and typical layouts. Include these in your totals.
+on home size and typical layouts.
+
+CONSISTENCY (critical): The counts object is the AUTHORITATIVE tally and it alone
+drives pricing. It MUST include BOTH the windows visible in the photos AND your
+estimate of the unseen back/side windows, each assigned to a type. Assign EVERY
+window you mention to a type — a round/octagon/arched or other fixed accent window
+is "picture". Before you answer, ADD UP your five window counts
+(single_hung_double_hung + picture + sliding + casement + bay_bow) and set the "total"
+field to exactly that sum.
+
+In the narrative, describe what you observed, but do NOT state a specific total window
+number — the editable counts below ARE the tally and the homeowner will adjust them.
+End by inviting them to tweak the counts. (This avoids the prose disagreeing with the
+grid.)
+
 Write a first-person narrative (3-4 sentences, ~300 characters) describing
 what you observed and your estimate. Examples of good narratives:
-"I looked at 5 photos of your home — a two-story house with roughly 6 windows
-visible on the front and 2 on the side. I estimated another 4-5 on the back
-since that side isn't visible in the photos. That puts you around 13 windows
-total, plus what looks like a sliding patio door."
-"From the 3 photos available, I could see the front of a one-story ranch with
-4 windows. Based on the home size, I estimated another 6 on the sides and
-back for a total around 10."
-Be direct. State what you saw. Name the total. Do not apologize for
-limitations — just name them.`;
+"I looked at 5 photos of your home — a two-story house with about 6 windows on
+the front and 2 on the side, plus what looks like a sliding patio door. I added
+an estimate for the back you can't see in the photos and filled in your counts
+below — adjust anything that looks off."
+"From the 3 photos available, I could see a one-story ranch with 4 windows on the
+front. I estimated the sides and back from the home's size and pre-filled your
+counts below for you to fine-tune."
+Be direct. Describe what you saw and point them to the editable counts below. Do
+not apologize for limitations — just name them.
+
+Also return best_image_indices: 0-based indices (into the photos provided, in order) of
+the photos that prominently feature this home's WINDOWS, to show the homeowner. Order:
+put EXTERIOR elevations FIRST (front, then sides/rear), THEN interior photos where
+windows are clearly visible and a main subject (e.g. a bay window, a wall of windows,
+patio/french doors, a distinctive accent window). Best-first, up to 4. INCLUDE every
+photo that meaningfully shows windows — most homes should yield 2-4. EXCLUDE photos with
+no meaningful windows: blank walls, closets, floors, ceilings, appliance/cabinet
+close-ups, and pure overhead aerial/drone shots. If truly only one photo shows any
+windows, return just that one.`;
 
 const PROPERTY_ONLY_SYSTEM_PROMPT = `You are estimating residential window counts using property metadata only.
 No listing photos are available, so provide a practical starting estimate from:
@@ -61,8 +86,10 @@ No listing photos are available, so provide a practical starting estimate from:
 
 Return counts by type using realistic ranges for U.S. single-family homes and similar properties.
 This is only a best guess the homeowner will edit before requesting their quote.
-Write a short first-person narrative (3-4 sentences, ~300 characters) that says you used property info (not photos),
-states the estimated total, and reminds them to adjust counts as needed.`;
+Write a short first-person narrative (3-4 sentences, ~300 characters) that says you used property info (not photos)
+and reminds them to adjust the counts below. Do NOT state a specific total window number — the editable counts below
+are the tally. Set the "total" field to the exact sum of your five window counts.
+No photos are available, so return best_image_indices: [].`;
 
 const OUTPUT_SCHEMA = {
   type: 'json_schema',
@@ -84,12 +111,16 @@ const OUTPUT_SCHEMA = {
       },
       total: { type: 'integer' },
       narrative: { type: 'string' },
+      best_image_indices: {
+        type: 'array',
+        items: { type: 'integer' },
+      },
       faces_observed: {
         type: 'array',
         items: { type: 'string' },
       },
     },
-    required: ['counts', 'total', 'narrative', 'faces_observed'],
+    required: ['counts', 'total', 'narrative', 'best_image_indices', 'faces_observed'],
     additionalProperties: false,
   },
 };
@@ -310,6 +341,17 @@ export default async function handler(req, res) {
 
     const summedTotal = Object.values(normalizedCounts).reduce((sum, val) => sum + val, 0);
 
+    const rawIndices = Array.isArray(parsed?.best_image_indices) ? parsed.best_image_indices : [];
+    const bestImageIndices = [];
+    for (const value of rawIndices) {
+      const idx = Number(value);
+      if (Number.isInteger(idx) && idx >= 0 && idx < imageBlocks.length && !bestImageIndices.includes(idx)) {
+        bestImageIndices.push(idx);
+      }
+      if (bestImageIndices.length >= 4) break;
+    }
+    if (bestImageIndices.length === 0 && imageBlocks.length > 0) bestImageIndices.push(0);
+
     if (canDoPropertyOnlyEstimate) {
       const fallbackLead = "We couldn't find enough listing photos of your home, so I estimated from your property details.";
       const lowerNarrative = narrativeText.toLowerCase();
@@ -329,6 +371,7 @@ export default async function handler(req, res) {
       narrative: narrativeText,
       facesObserved,
       imagesAnalyzed: imageBlocks.length,
+      bestImageIndices,
       model: MODEL_NAME,
     });
   } catch (error) {
